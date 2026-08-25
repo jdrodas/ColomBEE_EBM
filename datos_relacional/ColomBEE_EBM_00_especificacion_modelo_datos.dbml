@@ -1,0 +1,77 @@
+// Scripts de clase - Agosto 25 de 2026  
+// Curso de Tópicos Avanzados de base de datos - UPB 202620
+// Juan Dario Rodas - juand.rodasm@upb.edu.co
+
+// Proyecto: ColomBEE_EBM
+// Representación del modelo de datos en DBML
+
+
+Table "core"."apiarios" {
+  "id" uuid [pk, default: `uuidv7()`, note: 'ID del apiario.']
+  "nombre" varchar(100) [not null, note: 'nombre descriptivo del apiario.']
+  "latitud" doubleprecision [not null, note: 'Coordenada de latitud del apiario, en grados decimales.']
+  "longitud" doubleprecision [not null, note: 'Coordenada de longitud del apiario, en grados decimales.']
+
+  Checks {
+    `latitud between -90 and 90` [name: 'apiarios_latitud_ck']
+    `longitud between -180 and 180` [name: 'apiarios_longitud_ck']
+  }
+  Note: 'ubicación física que agrupa una o más colmenas.'
+}
+
+Table "core"."colmenas" {
+  "id" uuid [pk, default: `uuidv7()`, note: 'Id de la colmena.']
+  "apiario_id" uuid [not null, note: 'Id del apiario al que pertenece la colmena.']
+  "codigo" varchar(20) [not null, note: 'código o etiqueta física de la colmena (ej. "a3-07").']
+  "fecha_instalacion" date [not null, note: 'fecha en que la colmena entró en operación.']
+
+  Checks {
+    `fecha_instalacion <= current_date` [name: 'colmena_fecha_instalacion_ck']
+  }
+
+  Indexes {
+    (apiario_id, codigo) [unique, name: "colmena_apiario_codigo_uk"]
+  }
+  Note: 'colmena física perteneciente a un apiario.'
+}
+
+Table "core"."tipos_sensores" {
+  "id" uuid [pk, default: `uuidv7()`, note: 'Id del tipo de sensor']
+  "nombre" varchar(20) [not null, note: 'Unidad de medida usada por el tipo de sensor']
+  "unidad_medida" varchar(20) [not null]
+  Note: 'Tipos de sensores que se instalan en las colmenas'
+}
+
+Table "core"."sensores" {
+  "id" uuid [pk, default: `uuidv7()`, note: 'Id del sensor instalado en la colmena']
+  "colmena_id" uuid [not null, note: 'Id de la colmena donde está instalado el sensor.']
+  "tipo_id" uuid [not null, note: 'Id del tipo sensor.']
+  "frecuencia_muestreo" integer [not null, note: 'Intervalo de muestreo configurado para este sensor, en minutos.']
+  "fecha_instalacion" date [not null, note: 'Fecha en que el sensor entró en operación.']
+
+  Checks {
+    `frecuencia_muestreo > 0` [name: 'sensores_frecuencia_muestreo_ck']
+    `fecha_instalacion <= current_date` [name: 'sensores_fecha_instalacion_ck']
+  }
+  Note: 'dispositivo físico instalado en una colmena que captura una métrica específica a una frecuencia propia.'
+}
+
+Table "core"."lecturas" {
+  "id" uuid [pk, default: `uuidv7()`, note: 'Id de la lectura']
+  "sensor_id" uuid [not null, note: 'Id del sensor que generó la medición.']
+  "fecha_registro" timestamptz [not null, note: 'instante real de captura de la lectura.']
+  "valor" doubleprecision [not null, note: 'valor numérico medido.']
+
+  Indexes {
+    (sensor_id, fecha_registro) [unique, name: "lecturas_sensor_fecha_uk"]
+  }
+  Note: 'medición puntual capturada por un sensor en un instante determinado.'
+}
+
+Ref:"core"."apiarios"."id" <? "core"."colmenas"."apiario_id"
+
+Ref:"core"."colmenas"."id" <? "core"."sensores"."colmena_id"
+
+Ref:"core"."tipos_sensores"."id" <? "core"."sensores"."tipo_id"
+
+Ref:"core"."sensores"."id" <? "core"."lecturas"."sensor_id"
