@@ -98,6 +98,7 @@ El versionamiento de los endpoints utilizará parámetro en el encabezado o par�
 ```http
 GET    /api/apiarios                      # Listar todos los apiarios
 GET    /api/apiarios/{id}                 # Obtener un apiario por ID
+GET    /api/apiarios/{id}/colmenas        # Obtener colmenas de un apiario
 POST   /api/apiarios                      # Crear nuevo apiario
 PUT    /api/apiarios                      # Actualizar apiario
 DELETE /api/apiarios/{id}                 # Eliminar apiario
@@ -108,7 +109,7 @@ DELETE /api/apiarios/{id}                 # Eliminar apiario
 ```http
 GET    /api/colmenas                      # Listar todas las colmenas
 GET    /api/colmenas/{id}                 # Obtener una colmena por ID
-GET    /api/colmenas/{apiarioId}          # Obtener colmenas de un apiario
+GET    /api/colmenas/{id}/sensores        # Obtener sensores instalados en una colmena
 POST   /api/colmenas                      # Crear nueva colmena
 PUT    /api/colmenas                      # Actualizar colmena
 DELETE /api/colmenas/{id}                 # Eliminar colmena
@@ -129,7 +130,7 @@ DELETE /api/tipos-sensores/{id}           # Eliminar tipo de sensor
 ```http
 GET    /api/sensores                      # Listar todos los sensores
 GET    /api/sensores/{id}                 # Obtener un sensor por ID
-GET    /api/sensores/{colmenaId}          # Obtener sensores instalados en una colmena
+GET    /api/sensores/{id}/lecturas        # Obtener lecturas registradas por un sensor
 POST   /api/sensores                      # Crear nuevo sensor
 PUT    /api/sensores                      # Actualizar sensor
 DELETE /api/sensores/{id}                 # Eliminar sensor
@@ -140,7 +141,6 @@ DELETE /api/sensores/{id}                 # Eliminar sensor
 ```http
 GET    /api/lecturas                      # Listar todas las lecturas
 GET    /api/lecturas/{id}                 # Obtener una lectura por ID
-GET    /api/lecturas/{sensorId}           # Obtener lecturas registradas por un sensor
 GET    /api/lecturas/{fechaId}            # Obtener lecturas registradas por fecha
 POST   /api/lecturas                      # Crear nueva lectura
 PUT    /api/lecturas                      # Actualizar lectura
