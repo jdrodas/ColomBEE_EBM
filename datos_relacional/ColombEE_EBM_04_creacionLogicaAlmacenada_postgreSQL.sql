@@ -532,3 +532,130 @@ $$
         where id = p_id;
     end;
 $$;
+
+-- ### Lecturas ####
+
+-- p_inserta_lectura
+create or replace procedure core.p_inserta_lectura(
+                            in p_sensor_id         uuid,
+                            in p_fecha_registro    timestamptz,
+                            in p_valor             double precision)
+language plpgsql as
+$$
+    declare
+        l_total_registros integer;
+
+    begin
+        if  p_sensor_id is null then        
+               raise exception 'El ID del sensor es nulo.';
+        end if;
+
+        if  p_fecha_registro is null or 
+            p_fecha_registro > current_date then        
+               raise exception 'La fecha de registro es nula o inválida.';
+        end if;
+
+        if  p_valor is null or
+            p_valor < 0 then        
+               raise exception 'El valor de la lectura es nulo o inválido.';
+        end if;
+        
+
+        select count(id) into l_total_registros
+        from core.lecturas
+        where p_sensor_id = sensor_id
+        and p_fecha_registro = fecha_registro
+        and p_valor = valor;
+
+        if l_total_registros != 0  then
+            raise exception 'ya existe esa lectura registrada con esos parámetros';
+        end if;
+
+        insert into core.lecturas (sensor_id, fecha_registro, valor)
+        values (p_sensor_id, p_fecha_registro, p_valor);
+    end;
+$$;
+
+-- p_actualiza_lectura
+create or replace procedure core.p_actualiza_lectura(
+                            in p_id                uuid,
+                            in p_sensor_id         uuid,
+                            in p_fecha_registro    timestamptz,
+                            in p_valor             double precision)
+language plpgsql as
+$$
+    declare
+        l_total_registros integer;
+
+    begin
+        if  p_id is null then        
+               raise exception 'El ID de la lectura es nulo.';
+        end if;
+        
+        if  p_sensor_id is null then        
+               raise exception 'El ID del sensor es nulo.';
+        end if;
+
+        if  p_fecha_registro is null or 
+            p_fecha_registro > current_date then        
+               raise exception 'La fecha de registro es nula o inválida.';
+        end if;
+
+        if  p_valor is null or
+            p_valor < 0 then        
+               raise exception 'El valor de la lectura es nulo o inválido.';
+        end if;
+
+        select count(id) into l_total_registros
+        from core.lecturas
+        where id = p_id;
+
+        if l_total_registros = 0  then
+            raise exception 'No existe una lectura con ese Id';
+        end if;
+        
+
+        select count(id) into l_total_registros
+        from core.lecturas
+        where p_sensor_id = sensor_id
+        and p_fecha_registro = fecha_registro
+        and p_valor = valor;
+
+        if l_total_registros != 0  then
+            raise exception 'ya existe esa lectura registrada con esos parámetros';
+        end if;
+
+        update core.lecturas
+        set sensor_id = p_sensor_id,
+            fecha_registro = p_fecha_registro,
+            valor = p_valor
+        where id = p_id;
+    end;
+$$;
+
+
+-- p_eliminar_lectura
+create or replace procedure core.p_elimina_lectura(
+                            in p_id                     uuid)
+language plpgsql as
+$$
+    declare
+        l_total_registros integer;
+
+    begin
+        if p_id is null then
+               raise exception 'El Id no puede ser nulo.';
+        end if;
+
+        select count(id) into l_total_registros
+        from core.lecturas
+        where id = p_id;
+
+        if l_total_registros = 0  then
+            raise exception 'No existe una lectura con ese Id';
+        end if;
+
+        delete from core.lecturas
+        where id = p_id;
+    end;
+$$;
