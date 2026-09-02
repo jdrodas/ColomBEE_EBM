@@ -364,3 +364,171 @@ $$
         where id = p_id;
     end;
 $$;
+
+-- ### Sensor ####
+
+-- p_inserta_sensor
+create or replace procedure core.p_inserta_sensor(
+                            in p_colmena_id             uuid,
+                            in p_tipo_id                uuid,
+                            in p_frecuencia_muestreo    integer,
+                            in p_fecha_instalacion      date)
+language plpgsql as
+$$
+    declare
+        l_total_registros integer;
+
+    begin
+        if  p_colmena_id is null or
+            p_tipo_id is null or
+            p_frecuencia_muestreo is null or
+            p_frecuencia_muestreo <= 0 then
+               raise exception 'Los datos del sensor son nulos o inválidos.';
+        end if;
+
+        if p_fecha_instalacion is null or
+            p_fecha_instalacion > current_date then
+                raise exception 'El dato de la fecha de instalación es nulo o inválido';
+        end if;
+
+        -- Validar si el id de colmena existe
+
+        select count(id) into l_total_registros
+        from core.colmenas
+        where id = p_colmena_id;
+
+        if l_total_registros =0 then
+            raise exception 'No hay una colmena registrada con ese Id';
+        end if;
+
+        -- Validar si el id del tipo de sensor existe
+        select count(id) into l_total_registros
+        from core.tipos_sensores
+        where id = p_tipo_id;
+
+        if l_total_registros =0 then
+            raise exception 'No hay un tipo de sensor registrado con ese Id';
+        end if;
+
+        select count(id) into l_total_registros
+        from core.sensores
+        where colmena_id = p_colmena_id
+        and tipo_id = p_tipo_id
+        and frecuencia_muestreo = p_frecuencia_muestreo
+        and fecha_instalacion = p_fecha_instalacion;
+
+        if l_total_registros != 0  then
+            raise exception 'ya existe ese sensor registrado asociado a esa colmena, tipo de sensor, freceuncia de muestreo y fecha de instalación';
+        end if;
+
+        insert into core.sensores (colmena_id, tipo_id, frecuencia_muestreo, fecha_instalacion)
+        values (p_colmena_id, p_tipo_id, p_frecuencia_muestreo, p_fecha_instalacion);
+    end;
+$$;
+
+-- p_actualiza_sensor
+create or replace procedure core.p_actualiza_sensor(
+                            in p_id                     uuid,
+                            in p_colmena_id             uuid,
+                            in p_tipo_id                uuid,
+                            in p_frecuencia_muestreo    integer,
+                            in p_fecha_instalacion      date)
+language plpgsql as
+$$
+    declare
+        l_total_registros integer;
+
+    begin
+        if  p_colmena_id is null or
+            p_tipo_id is null or
+            p_id is null or 
+            p_frecuencia_muestreo is null or
+            p_frecuencia_muestreo <= 0 then
+               raise exception 'Los datos del sensor son nulos o inválidos.';
+        end if;
+
+        if p_fecha_instalacion is null or
+            p_fecha_instalacion > current_date then
+                raise exception 'El dato de la fecha de instalación es nulo o inválido';
+        end if;
+
+        -- Validar si el id de colmena existe
+        select count(id) into l_total_registros
+        from core.colmenas
+        where id = p_colmena_id;
+
+        if l_total_registros =0 then
+            raise exception 'No hay una colmena registrada con ese Id';
+        end if;
+
+        -- Validar si el id del tipo de sensor existe
+        select count(id) into l_total_registros
+        from core.tipos_sensores
+        where id = p_tipo_id;
+
+        if l_total_registros =0 then
+            raise exception 'No hay un tipo de sensor registrado con ese Id';
+        end if;
+
+        -- Validar si el id del sensor existe
+        select count(id) into l_total_registros
+        from core.sensores
+        where id = p_id;
+
+        if l_total_registros = 0 then
+            raise exception 'No existe un sensor con ese Id que se pueda actualizar';
+        end if;
+
+        select count(id) into l_total_registros
+        from core.sensores
+        where colmena_id = p_colmena_id
+        and tipo_id = p_tipo_id
+        and frecuencia_muestreo = p_frecuencia_muestreo
+        and fecha_instalacion = p_fecha_instalacion;
+
+        if l_total_registros != 0  then
+            raise exception 'ya existe ese sensor registrado asociado a esa colmena, tipo de sensor, freceuncia de muestreo y fecha de instalación';
+        end if;
+
+        update core.sensores
+        set colmena_id = p_colmena_id,
+            tipo_id = p_tipo_id,
+            frecuencia_muestreo = p_frecuencia_muestreo,
+            fecha_instalacion = p_fecha_instalacion
+        where id = p_id;
+    end;
+$$;
+
+-- p_elimina_sensor
+create or replace procedure core.p_elimina_sensor(
+                            in p_id                     uuid)
+language plpgsql as
+$$
+    declare
+        l_total_registros integer;
+
+    begin
+        if p_id is null then
+               raise exception 'El Id no puede ser nulo.';
+        end if;
+
+        select count(id) into l_total_registros
+        from core.sensores
+        where id = p_id;
+
+        if l_total_registros = 0  then
+            raise exception 'No existe un sensor con ese Id';
+        end if;
+
+        select count(id) into l_total_registros
+        from core.lecturas
+        where sensor_id = p_id;
+
+        if l_total_registros != 0  then
+            raise exception 'No se puede eliminar, hay lecturas registradas que dependen de este sensor.';
+        end if;
+
+        delete from core.sensores
+        where id = p_id;
+    end;
+$$;
