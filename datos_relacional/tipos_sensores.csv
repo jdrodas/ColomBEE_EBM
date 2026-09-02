@@ -1,0 +1,6 @@
+id,nombre,unidad_medida
+01a03f4a-6833-7c58-b22f-04393789e4ce,Temperatura,Grados Centigrados
+01a0444c-ca26-7e6e-9ded-02082c3bea5d,Sonido,Decibeles
+01a03f4b-6407-7c07-b73c-571fc91bebdb,Peso,Libras
+01a0488c-cad8-7263-8761-67d8ae30d521,Humedad,% Humedad
+01a048f5-f5d7-7465-b8a9-6fe194dc768f,Luz,Candela
