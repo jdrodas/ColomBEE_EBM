@@ -253,3 +253,114 @@ $$
         where id = p_id;
     end;
 $$;
+
+-- ### Tipos_sensores ####
+
+-- p_inserta_tipo_sensor
+create or replace procedure core.p_inserta_tipo_sensor(
+                            in p_nombre                 varchar,
+                            in p_unidad_medida          varchar)
+language plpgsql as
+$$
+    declare
+        l_total_registros integer;
+
+    begin
+        if  p_nombre is null or
+            p_unidad_medida is null or
+            length(p_nombre) = 0 or
+            length(p_unidad_medida) = 0 then        
+               raise exception 'El nombre o la unidad de medida del tipo de sensor son nulos o inválidos.';
+        end if;
+
+        select count(id) into l_total_registros
+        from core.tipos_sensores
+        where upper(p_nombre) = upper(nombre)
+        and upper(p_unidad_medida) = upper(unidad_medida);
+
+        if l_total_registros != 0  then
+            raise exception 'ya existe ese tipo de sensor registrado con ese nombre y unidad de medida';
+        end if;
+
+        insert into core.tipos_sensores (nombre,unidad_medida)
+        values (initcap(p_nombre), initcap(p_unidad_medida));
+    end;
+$$;
+
+
+-- p_actualiza_tipo_sensor
+create or replace procedure core.p_actualiza_tipo_sensor(
+                            in p_id                     uuid,
+                            in p_nombre                 varchar,
+                            in p_unidad_medida          varchar)
+language plpgsql as
+$$
+    declare
+        l_total_registros integer;
+
+    begin
+        if  p_nombre is null or
+            p_unidad_medida is null or
+            length(p_nombre) = 0 or
+            length(p_unidad_medida) = 0 then        
+               raise exception 'El nombre o la unidad de medida del tipo de sensor son nulos o inválidos.';
+        end if;
+
+        select count(id) into l_total_registros
+        from core.tipos_sensores
+        where id = p_id;
+
+        if l_total_registros = 0  then
+            raise exception 'No existe un tipo de sensor con ese Id';
+        end if;
+
+        select count(id) into l_total_registros
+        from core.tipos_sensores
+        where upper(p_nombre) = upper(nombre)
+        and upper(p_unidad_medida) = upper(unidad_medida);
+
+        if l_total_registros > 0  then
+            raise exception 'ya existe ese tipo de sensor registrado con ese nombre y unidad de medida';
+        end if;
+
+        update core.tipos_sensores
+        set
+            nombre = initcap(p_nombre),
+            unidad_medida = initcap(p_unidad_medida)
+        where id = p_id;
+    end;
+$$;
+
+-- p_elimina_tipo_sensor
+create or replace procedure core.p_elimina_tipo_sensor(
+                            in p_id                     uuid)
+language plpgsql as
+$$
+    declare
+        l_total_registros integer;
+
+    begin
+        if p_id is null then
+               raise exception 'El Id no puede ser nulo.';
+        end if;
+
+        select count(id) into l_total_registros
+        from core.tipos_sensores
+        where id = p_id;
+
+        if l_total_registros = 0  then
+            raise exception 'No existe un tipo de sensor con ese Id';
+        end if;
+
+        select count(id) into l_total_registros
+        from core.sensores
+        where tipo_id = p_id;
+
+        if l_total_registros != 0  then
+            raise exception 'No se puede eliminar, hay sensores registrados que dependen de este tipo sensor.';
+        end if;
+
+        delete from core.tipos_sensores
+        where id = p_id;
+    end;
+$$;
