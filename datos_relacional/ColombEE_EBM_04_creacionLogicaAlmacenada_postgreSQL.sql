@@ -136,3 +136,120 @@ $$
         where id = p_id;
     end;
 $$;
+
+-- ### Colmenas ####
+
+-- p_inserta_colmena
+create or replace procedure core.p_inserta_colmena(
+                            in p_codigo              varchar,
+                            in p_apiario_id          uuid,
+                            in p_fecha_instalacion   date)
+language plpgsql as
+$$
+    declare
+        l_total_registros integer;
+
+    begin
+        if  p_codigo is null or
+            p_apiario_id is null or
+            p_fecha_instalacion is null or
+            length(p_codigo) = 0 then        
+               raise exception 'El codigo del apiario, o de la colmena o la fecha de instalacion son nulos o inválidos.';
+        end if;
+
+        select count(id) into l_total_registros
+        from core.colmenas
+        where upper(p_codigo) = upper(codigo)
+        and p_apiario_id = apiario_id
+        and p_fecha_instalacion = fecha_instalacion;
+
+        if l_total_registros != 0  then
+            raise exception 'ya existe esa colmena registrada con ese codigo, apiario y fecha de instalación.';
+        end if;
+
+        insert into core.colmenas (codigo, apiario_id,fecha_instalacion)
+        values (initcap(p_codigo),p_apiario_id,p_fecha_instalacion);
+    end;
+$$;
+
+
+-- p_actualiza_colmena
+create or replace procedure core.p_actualiza_colmena(
+                            in p_id                  uuid,
+                            in p_codigo              varchar,
+                            in p_apiario_id          uuid,
+                            in p_fecha_instalacion   date)
+language plpgsql as
+$$
+    declare
+        l_total_registros integer;
+
+    begin
+        if  p_codigo is null or
+            p_apiario_id is null or
+            p_fecha_instalacion is null or
+            length(p_codigo) = 0 then        
+               raise exception 'El codigo del apiario, o de la colmena o la fecha de instalacion son nulos o inválidos.';
+        end if;
+
+        select count(id) into l_total_registros
+        from core.colmenas
+        where id = p_id;
+
+        if l_total_registros = 0  then
+            raise exception 'No existe una colmena con ese Id';
+        end if;
+
+        select count(id) into l_total_registros
+        from core.colmenas
+        where upper(p_codigo) = upper(codigo)
+        and p_apiario_id = apiario_id
+        and p_fecha_instalacion = fecha_instalacion;
+
+        if l_total_registros != 0  then
+            raise exception 'ya existe esa colmena registrada con ese codigo, apiario y fecha de instalación.';
+        end if;
+
+        update core.colmenas
+        set
+            codigo = initcap(p_codigo),
+            apiario_id = p_apiario_id,
+            fecha_instalacion = p_fecha_instalacion
+        where id = p_id;
+    end;
+$$;
+
+
+-- p_elimina_colmena
+create or replace procedure core.p_elimina_colmena(
+                            in p_id                     uuid)
+language plpgsql as
+$$
+    declare
+        l_total_registros integer;
+
+    begin
+        if p_id is null then
+               raise exception 'El Id no puede ser nulo.';
+        end if;
+
+        select count(id) into l_total_registros
+        from core.colmenas
+        where id = p_id;
+
+        if l_total_registros = 0  then
+            raise exception 'No existe una colmena con ese Id';
+        end if;
+
+        select count(id) into l_total_registros
+        from core.sensores
+        where colmena_id = p_id;
+
+        if l_total_registros != 0  then
+            raise exception 'No se puede eliminar, hay sensores registrados que dependen de esta colmena.';
+        end if;
+
+        delete from core.colmenas
+        where id = p_id;
+    end;
+$$;
