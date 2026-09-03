@@ -1,0 +1,6 @@
+@ColomBEE_CSharp_Relacional.API_HostAddress = http://localhost:5089
+
+GET {{ColomBEE_CSharp_Relacional.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

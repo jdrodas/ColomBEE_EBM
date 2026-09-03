@@ -100,3 +100,27 @@ comment on column core.lecturas.sensor_id is 'Id del sensor que generó la medic
 comment on column core.lecturas.fecha_registro is 'instante real de captura de la lectura.';
 comment on column core.lecturas.valor is 'valor numérico medido.';
 
+-- ***************************************************************
+-- Creación de Tablas para monitoreo de la operación del sistema
+-- ***************************************************************
+
+-- Tabla: estados_sistema
+create table monitoreo.estados_sistema (
+    id                      uuid default uuidv7() constraint estados_sistema_pk primary key,
+    fecha_verificacion      timestamptz not null default current_timestamp,
+    estado                  varchar(20) not null,
+    mensaje                 text not null default '',
+    tiempo_respuesta_sm     bigint not null default 0,
+    db_conectada            boolean not null default false
+);
+
+comment on table monitoreo.estados_sistema is 'Registros de health checks del sistema';
+comment on column monitoreo.estados_sistema.id is 'Id único del registro';
+comment on column monitoreo.estados_sistema.fecha_verificacion is 'Fecha y hora de la verificación';
+comment on column monitoreo.estados_sistema.estado is 'estado: ok, warning, error';
+comment on column monitoreo.estados_sistema.mensaje is 'mensaje descriptivo del estado';
+comment on column monitoreo.estados_sistema.tiempo_respuesta_sm is 'tiempo de respuesta en ms';
+comment on column monitoreo.estados_sistema.db_conectada is 'indica si la bd estaba conectada';
+
+create index estados_sistema_fecha_verificacion_ix on monitoreo.estados_sistema(fecha_verificacion desc);
+create index estados_sistema_estado_ix on monitoreo.estados_sistema(estado);
