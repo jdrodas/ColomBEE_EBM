@@ -110,7 +110,7 @@ create table monitoreo.estados_sistema (
     fecha_verificacion      timestamptz not null default current_timestamp,
     estado                  varchar(20) not null,
     mensaje                 text not null default '',
-    tiempo_respuesta_sm     bigint not null default 0,
+    tiempo_respuesta_ms     bigint not null default 0,
     db_conectada            boolean not null default false
 );
 
@@ -119,7 +119,7 @@ comment on column monitoreo.estados_sistema.id is 'Id único del registro';
 comment on column monitoreo.estados_sistema.fecha_verificacion is 'Fecha y hora de la verificación';
 comment on column monitoreo.estados_sistema.estado is 'estado: ok, warning, error';
 comment on column monitoreo.estados_sistema.mensaje is 'mensaje descriptivo del estado';
-comment on column monitoreo.estados_sistema.tiempo_respuesta_sm is 'tiempo de respuesta en ms';
+comment on column monitoreo.estados_sistema.tiempo_respuesta_ms is 'tiempo de respuesta en ms';
 comment on column monitoreo.estados_sistema.db_conectada is 'indica si la bd estaba conectada';
 
 create index estados_sistema_fecha_verificacion_ix on monitoreo.estados_sistema(fecha_verificacion desc);

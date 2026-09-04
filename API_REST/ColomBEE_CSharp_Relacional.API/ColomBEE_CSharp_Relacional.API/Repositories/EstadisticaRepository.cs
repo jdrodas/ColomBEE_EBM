@@ -15,7 +15,7 @@ namespace ColomBEE_CSharp_Relacional.API.Repositories
 
             Estadistica conteoRegistros = new();
 
-            string sentenciaSql =
+            var sentenciaSql =
                 "SELECT COUNT(id) total FROM core.apiarios";
 
             conteoRegistros.Apiarios = await conexion

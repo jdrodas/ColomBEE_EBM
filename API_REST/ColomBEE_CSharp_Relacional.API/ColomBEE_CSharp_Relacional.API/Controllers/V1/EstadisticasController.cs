@@ -7,7 +7,7 @@ namespace ColomBEE_CSharp_Relacional.API.Controllers.V1
     [ApiController]
     [ApiVersion("1.0")]
     [Route("api/estadisticas")]
-    public class EstadisticasControlller(EstadisticaService estadisticaService) : Controller
+    public class EstadisticasController(EstadisticaService estadisticaService) : Controller
     {
         private readonly EstadisticaService _estadisticaService = estadisticaService;
         
