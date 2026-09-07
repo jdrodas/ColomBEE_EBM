@@ -111,8 +111,11 @@ create table monitoreo.estados_sistema (
     estado                  varchar(20) not null,
     mensaje                 text not null default '',
     tiempo_respuesta_ms     bigint not null default 0,
-    db_conectada            boolean not null default false
+    db_conectada            boolean not null default false,
+    tipo_verificacion       varchar(50) default 'health',
+    fecha_creacion          timestamptz not null default current_timestamp    
 );
+
 
 comment on table monitoreo.estados_sistema is 'Registros de health checks del sistema';
 comment on column monitoreo.estados_sistema.id is 'Id único del registro';
@@ -121,6 +124,11 @@ comment on column monitoreo.estados_sistema.estado is 'estado: ok, warning, erro
 comment on column monitoreo.estados_sistema.mensaje is 'mensaje descriptivo del estado';
 comment on column monitoreo.estados_sistema.tiempo_respuesta_ms is 'tiempo de respuesta en ms';
 comment on column monitoreo.estados_sistema.db_conectada is 'indica si la bd estaba conectada';
+comment on column monitoreo.estados_sistema.tipo_verificacion is 'tipo de verificación realizada';
+comment on column monitoreo.estados_sistema.fecha_creacion is 'fecha de creación del registro';
 
 create index estados_sistema_fecha_verificacion_ix on monitoreo.estados_sistema(fecha_verificacion desc);
 create index estados_sistema_estado_ix on monitoreo.estados_sistema(estado);
+create index estados_sistema_tipo_verificacion_ix on monitoreo.estados_sistema(tipo_verificacion);
+create index estados_sistema_fecha_creacion_ix on monitoreo.estados_sistema(fecha_creacion desc);
+

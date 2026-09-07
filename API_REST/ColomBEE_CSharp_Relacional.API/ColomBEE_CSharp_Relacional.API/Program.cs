@@ -1,11 +1,13 @@
 using Asp.Versioning;
+using Asp.Versioning.ApiExplorer;
 using ColomBEE_CSharp_Relacional.API.DbContexts;
 using ColomBEE_CSharp_Relacional.API.Interfaces;
 using ColomBEE_CSharp_Relacional.API.Models;
 using ColomBEE_CSharp_Relacional.API.Repositories;
 using ColomBEE_CSharp_Relacional.API.Services;
 using Microsoft.OpenApi;
-
+using Microsoft.Extensions.Options;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,16 +36,14 @@ builder.Services.AddSingleton<PgsqlDbContext>();
 // ***************************************************************************
 // --- Configuración de los repositorios --
 // ***************************************************************************
-
 builder.Services.AddScoped<IEstadisticaRepository, EstadisticaRepository>();
-
-
+builder.Services.AddScoped<IHealthCheckRepository, HealthCheckRepository>();
 
 // ***************************************************************************
 // --- Configuración de los servicios asociados  --
 // ***************************************************************************
-
 builder.Services.AddScoped<EstadisticaService>();
+builder.Services.AddScoped<HealthCheckService>();
 
 // Add services to the container.
 builder.Services.AddControllers()
@@ -51,47 +51,19 @@ builder.Services.AddControllers()
         options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
 
 // ***************************************************************************
-// --- Configuración del Swagger/OpenAPI  --
-// ***************************************************************************
-
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
-
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-
-builder.Services.AddSwaggerGen(options =>
-{
-    options.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Version = "v1",
-        Title = "ColomBEE-EBM.API v1 - PostgreSQL",
-        Description = "API para la gestión de Información de Colmenas de abejas"
-    });
-
-    options.SwaggerDoc("v2", new OpenApiInfo
-    {
-        Version = "v2",
-        Title = "ColomBEE-EBM.API v2 - PostgreSQL",
-        Description = "API para la gestión de Información de Colmenas de abejas"
-    });
-});
-
-// ***************************************************************************
 // --- Configuración del versionamiento para el API  --
 // ***************************************************************************
 
 builder.Services.AddApiVersioning(options =>
-{
-    options.DefaultApiVersion = new ApiVersion(1, 0);
-    options.AssumeDefaultVersionWhenUnspecified = true;
-    options.ReportApiVersions = true;
-    options.ApiVersionReader = ApiVersionReader.Combine(
-        new HeaderApiVersionReader("api-version"),
-        new QueryStringApiVersionReader("api-version")
-    );
-}
-)
+        {
+            options.DefaultApiVersion = new ApiVersion(1, 0);
+            options.ReportApiVersions = true;
+            options.ApiVersionReader = ApiVersionReader.Combine(
+                new HeaderApiVersionReader("api-version"),
+                new QueryStringApiVersionReader("api-version")
+            );
+        }
+    )
     .AddMvc()
     .AddApiExplorer(setup =>
     {
@@ -99,12 +71,32 @@ builder.Services.AddApiVersioning(options =>
         setup.SubstituteApiVersionInUrl = true;
     });
 
+// ***************************************************************************
+// --- Configuración del Swagger/OpenAPI  --
+// ***************************************************************************
+
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Version = "v1",
+        Title = "ColomBEE-EBM.API v1 - PostgreSQL",
+    });
+
+    options.SwaggerDoc("v2", new OpenApiInfo
+    {
+        Version = "v2",
+        Title = "ColomBEE-EBM.API v2 - PostgreSQL",
+    });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
     app.UseSwagger();
     app.UseSwaggerUI(config =>
     {
