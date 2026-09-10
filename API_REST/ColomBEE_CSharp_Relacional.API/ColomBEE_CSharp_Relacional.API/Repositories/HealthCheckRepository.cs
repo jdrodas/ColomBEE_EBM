@@ -39,7 +39,7 @@ namespace ColomBEE_CSharp_Relacional.API.Repositories
                 resultado.TiempoRespuestaMs = cronometro.ElapsedMilliseconds;
                 resultado.Estado = "FALLIDO";
                 resultado.Mensaje = "Error al conectar con la base de datos";
-                resultado.DetalleError = $"{unError.GetType().Name}: {unError.Message}";
+                resultado.DetalleError = $"Hubo un error al conectarse a la base de datos asignada a esta API";
             }
 
             return resultado;

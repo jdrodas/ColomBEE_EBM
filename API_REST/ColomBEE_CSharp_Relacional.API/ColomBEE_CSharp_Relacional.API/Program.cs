@@ -38,12 +38,20 @@ builder.Services.AddSingleton<PgsqlDbContext>();
 // ***************************************************************************
 builder.Services.AddScoped<IEstadisticaRepository, EstadisticaRepository>();
 builder.Services.AddScoped<IHealthCheckRepository, HealthCheckRepository>();
+builder.Services.AddScoped<IApiarioRepository, ApiarioRepository>();
+builder.Services.AddScoped<IColmenaRepository, ColmenaRepository>();
+builder.Services.AddScoped<ITipoSensorRepository, TipoSensorRepository>();
+builder.Services.AddScoped<ISensorRepository, SensorRepository>();
 
 // ***************************************************************************
 // --- Configuración de los servicios asociados  --
 // ***************************************************************************
 builder.Services.AddScoped<EstadisticaService>();
 builder.Services.AddScoped<HealthCheckService>();
+builder.Services.AddScoped<ApiarioService>();
+builder.Services.AddScoped<ColmenaService>();
+builder.Services.AddScoped<TipoSensorService>();
+builder.Services.AddScoped<SensorService>();
 
 // Add services to the container.
 builder.Services.AddControllers()
