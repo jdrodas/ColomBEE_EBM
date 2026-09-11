@@ -24,7 +24,7 @@ namespace ColomBEE_CSharp_Relacional.API.Models
             var otroApiario = (Apiario)obj;
 
             return Id == otroApiario.Id
-                   && Nombre!.Equals(otroApiario.Nombre)
+                   && Nombre!.ToUpper().Equals(otroApiario.Nombre!.ToUpper())
                    && Latitud == otroApiario.Latitud
                    && Longitud == otroApiario.Longitud;
         }

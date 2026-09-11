@@ -15,14 +15,12 @@ namespace ColomBEE_CSharp_Relacional.API.Repositories
             var conexion = _contextoDb.CreateConnection();
 
             string sentenciaSQL =
-                "SELECT s.id, s.tipo_id tipoId, s.colmena_id colmenaId, "+
-                "ts.nombre tipoNombre, c.codigo colmenaCodigo, " +
-                "s.frecuencia_muestreo frecuenciaMuestreo, " +
-                "to_char(s.fecha_instalacion,'DD/MM/YYYY') fechaInstalacion "+
-                "FROM core.sensores s " +
-                "JOIN core.tipos_sensores ts ON s.tipo_id = ts.id "+
-                "JOIN core.colmenas c ON s.colmena_id = c.id "+
-                "ORDER BY c.codigo, ts.nombre";
+                "SELECT id, tipoId, colmenaId, "+
+                "tipoNombre, colmenaCodigo, " +
+                "frecuenciaMuestreo, " +
+                "fechaInstalacion "+
+                "FROM core.v_info_sensores " +
+                "ORDER BY colmenaCodigo, tipoNombre";
 
             var resultadoSensores = await conexion
                 .QueryAsync<Sensor>(sentenciaSQL, new DynamicParameters());
@@ -40,14 +38,12 @@ namespace ColomBEE_CSharp_Relacional.API.Repositories
                 DbType.Guid, ParameterDirection.Input);
 
             string sentenciaSQL =
-                "SELECT s.id, s.tipo_id tipoId, s.colmena_id colmenaId, "+
-                "ts.nombre tipoNombre, c.codigo colmenaCodigo, " +
-                "s.frecuencia_muestreo frecuenciaMuestreo, " +
-                "to_char(s.fecha_instalacion,'DD/MM/YYYY') fechaInstalacion "+
-                "FROM core.sensores s " +
-                "JOIN core.tipos_sensores ts ON s.tipo_id = ts.id "+
-                "JOIN core.colmenas c ON s.colmena_id = c.id "+
-                "WHERE s.id = @sensorId";
+                "SELECT id, tipoId, colmenaId, "+
+                "tipoNombre, colmenaCodigo, " +
+                "frecuenciaMuestreo, " +
+                "fechaInstalacion "+
+                "FROM core.v_info_sensores " +
+                "WHERE id = @sensorId";
 
             var resultado = await conexion
                 .QueryAsync<Sensor>(sentenciaSQL, parametrosSentencia);

@@ -25,5 +25,53 @@ namespace ColomBEE_CSharp_Relacional.API.Services
 
             return unApiario;
         }
+        
+        public async Task<Apiario> CreateAsync(Apiario unApiario)
+        {
+            unApiario.Nombre = unApiario.Nombre!.Trim();
+
+            string resultadoValidacion = EvaluateApiaryDetailsAsync(unApiario);
+
+            if (!string.IsNullOrEmpty(resultadoValidacion))
+                throw new AppValidationException(resultadoValidacion);
+
+            var apiarioExistente = await _apiarioRepository
+                .GetByDetailsAsync(unApiario);
+
+            if (apiarioExistente.Equals(unApiario))
+                return apiarioExistente;
+
+            try
+            {
+                bool resultadoAccion = await _apiarioRepository
+                    .CreateAsync(unApiario);
+
+                if (!resultadoAccion)
+                    throw new AppValidationException("Operación ejecutada pero no generó cambios en la DB");
+
+                apiarioExistente = await _apiarioRepository
+                    .GetByDetailsAsync(unApiario);
+            }
+            catch (DbOperationException)
+            {
+                throw;
+            }
+
+            return apiarioExistente;
+        }
+        
+        private static string EvaluateApiaryDetailsAsync(Apiario unApiario)
+        {
+            if (string.IsNullOrEmpty(unApiario.Nombre))
+                return "No se puede insertar un apiario con nombre nulo";
+
+            if(unApiario.Latitud > 90 || unApiario.Latitud <-90)
+                return "La latitud de la coordenada geográfica del apiario debe ser un valor entre [-90;90]";
+
+            if(unApiario.Longitud > 180 || unApiario.Longitud <-180)
+                return "La longitud de la coordenada geográfica del apiario debe ser un valor entre [-180;180]";
+            
+            return string.Empty;
+        }
     }
 }
