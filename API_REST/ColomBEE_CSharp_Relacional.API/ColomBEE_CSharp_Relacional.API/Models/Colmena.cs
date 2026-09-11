@@ -27,7 +27,7 @@ namespace ColomBEE_CSharp_Relacional.API.Models
             var otraColmena = (Colmena)obj;
 
             return Id == otraColmena.Id
-                   && Codigo!.Equals(otraColmena.Codigo)
+                   && Codigo!.ToUpper().Equals(otraColmena.Codigo!.ToUpper())
                    && ApiarioId == otraColmena.ApiarioId
                    && FechaInstalacion! == otraColmena.FechaInstalacion;
         }

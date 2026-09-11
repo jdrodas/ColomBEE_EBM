@@ -22,8 +22,8 @@ namespace ColomBEE_CSharp_Relacional.API.Models
             var otroTipoSensor = (TipoSensor)obj;
 
             return Id == otroTipoSensor.Id
-                   && Nombre!.Equals(otroTipoSensor.Nombre)
-                   && UnidadMedida! == otroTipoSensor.UnidadMedida;
+                   && Nombre!.ToUpper().Equals(otroTipoSensor.Nombre!.ToUpper())
+                   && UnidadMedida!.ToUpper()! == otroTipoSensor.UnidadMedida!.ToUpper();
         }
         public override int GetHashCode()
         {

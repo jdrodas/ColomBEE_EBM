@@ -143,7 +143,7 @@ $$;
 create or replace procedure core.p_inserta_colmena(
                             in p_codigo              varchar,
                             in p_apiario_id          uuid,
-                            in p_fecha_instalacion   date)
+                            in p_fecha_instalacion   varchar)
 language plpgsql as
 $$
     declare
@@ -168,7 +168,7 @@ $$
         end if;
 
         insert into core.colmenas (codigo, apiario_id,fecha_instalacion)
-        values (initcap(p_codigo),p_apiario_id,p_fecha_instalacion);
+        values (initcap(p_codigo),p_apiario_id,to_date(p_fecha_instalacion,'DD/MM/YYYY'));
     end;
 $$;
 
