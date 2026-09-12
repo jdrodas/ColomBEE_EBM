@@ -74,7 +74,8 @@ create table core.sensores (
     fecha_instalacion       date not null,
 
     constraint sensores_frecuencia_muestreo_ck check (frecuencia_muestreo > 0),
-    constraint sensores_fecha_instalacion_ck check (fecha_instalacion <= current_date)
+    constraint sensores_fecha_instalacion_ck check (fecha_instalacion <= current_date),
+    constraint sensores_uk unique (colmena_id, tipo_id, fecha_instalacion)
 );
 
 comment on table core.sensores is 'dispositivo físico instalado en una colmena que captura una métrica específica a una frecuencia propia.';

@@ -1,5 +1,6 @@
 using Asp.Versioning;
 using ColomBEE_CSharp_Relacional.API.Services;
+using ColomBEE_CSharp_Relacional.API.Models;
 using ColomBEE_CSharp_Relacional.API.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
@@ -34,6 +35,26 @@ namespace ColomBEE_CSharp_Relacional.API.Controllers.V1
             catch (EmptyCollectionException error)
             {
                 return NotFound($"Error de validación: {error.Message}");
+            }
+        }
+        
+        [HttpPost]
+        public async Task<IActionResult> CreateAsync(Sensor unSensor)
+        {
+            try
+            {
+                var sensorCreado = await _sensorService
+                    .CreateAsync(unSensor);
+
+                return Ok(sensorCreado);
+            }
+            catch (AppValidationException error)
+            {
+                return BadRequest($"Error de validación: {error.Message}");
+            }
+            catch (DbOperationException error)
+            {
+                return BadRequest($"Error de operación en DB: {error.Message}");
             }
         }
     }
