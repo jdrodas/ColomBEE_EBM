@@ -11,8 +11,15 @@ namespace ColomBEE_CSharp_Relacional.API.Services
 
         public async Task<List<TipoSensor>> GetAllAsync()
         {
-            return await _tipoSensorRepository
-                .GetAllAsync();
+            try
+            {
+                return await _tipoSensorRepository 
+                    .GetAllAsync(); 
+            }
+            catch (DbOperationException)
+            {
+                throw;
+            }
         }
         
         public async Task<TipoSensor> GetByIdAsync(Guid tipoSensorId)

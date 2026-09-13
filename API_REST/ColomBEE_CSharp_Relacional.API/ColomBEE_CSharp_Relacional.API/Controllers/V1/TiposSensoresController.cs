@@ -2,6 +2,7 @@ using Asp.Versioning;
 using ColomBEE_CSharp_Relacional.API.Models;
 using ColomBEE_CSharp_Relacional.API.Services;
 using ColomBEE_CSharp_Relacional.API.Exceptions;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ColomBEE_CSharp_Relacional.API.Controllers.V1
@@ -9,17 +10,34 @@ namespace ColomBEE_CSharp_Relacional.API.Controllers.V1
     [ApiController]
     [ApiVersion("1.0")]
     [Route("api/tiposSensores")]
+    [Produces("application/json")]
     public class TiposSensoresController(TipoSensorService tipoSensorService) : Controller
     {
         private readonly TipoSensorService _tipoSensorService = tipoSensorService;
         
         [HttpGet]
+        [ProducesResponseType(typeof(List<TipoSensor>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllAsync()
         {
-            var losTiposSensores = await _tipoSensorService
-                .GetAllAsync();
+            try
+            {
+                var losTiposSensores = await _tipoSensorService
+                    .GetAllAsync();
 
-            return Ok(losTiposSensores);
+                return Ok(losTiposSensores);
+            }
+            catch (DbOperationException error)
+            {
+                var unProblema = new ProblemDetails
+                {
+                    Status = StatusCodes.Status500InternalServerError,
+                    Title = "Error en bases de datos",
+                    Detail = error.Message
+                };
+                
+                return StatusCode(StatusCodes.Status500InternalServerError, unProblema);
+            }
         }
         
         [HttpGet("{tipoSensorId:Guid}")]
