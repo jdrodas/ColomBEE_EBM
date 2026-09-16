@@ -24,13 +24,20 @@ namespace ColomBEE_CSharp_Relacional.API.Services
         
         public async Task<TipoSensor> GetByIdAsync(Guid tipoSensorId)
         {
-            TipoSensor unTipoSensor = await _tipoSensorRepository
-                .GetByIdAsync(tipoSensorId);
+            try
+            {
+                TipoSensor unTipoSensor = await _tipoSensorRepository
+                    .GetByIdAsync(tipoSensorId);
 
-            if (unTipoSensor.Id == Guid.Empty)
-                throw new EmptyCollectionException($"Tipo Sensor no encontrado con el Id {tipoSensorId}");
+                if (unTipoSensor.Id == Guid.Empty)
+                    throw new EmptyCollectionException($"Tipo Sensor no encontrado con el Id {tipoSensorId}");
 
-            return unTipoSensor;
+                return unTipoSensor;                
+            }
+            catch (DbOperationException)
+            {
+                throw;
+            }
         }
         
         public async Task<TipoSensor> CreateAsync(TipoSensor unTipoSensor)
@@ -48,7 +55,8 @@ namespace ColomBEE_CSharp_Relacional.API.Services
 
             if(tipoSensorExistente.Nombre!.ToUpper().Equals(unTipoSensor.Nombre.ToUpper()) &&
                tipoSensorExistente.UnidadMedida!.ToUpper().Equals(unTipoSensor.UnidadMedida.ToUpper()))
-                return tipoSensorExistente;
+                throw new ConflictException($"No se puede crear el tipo de sensor {unTipoSensor.Nombre} " +
+                                            $"porque ya existe con id {tipoSensorExistente.Id}");
 
             try
             {
@@ -79,6 +87,13 @@ namespace ColomBEE_CSharp_Relacional.API.Services
             if (tipoSensorExistente.Id == Guid.Empty)
                 throw new EmptyCollectionException($"No hay un tipo de sensor con id {tipoSensorId}");
 
+            var totalSensoresAsociados = await _tipoSensorRepository
+                .GetTotalAssociatedSensorsAsync(tipoSensorId);
+            
+            if(totalSensoresAsociados >0)
+                throw new AppValidationException($"El tipo de sensor con id {tipoSensorId} tiene {totalSensoresAsociados} sensores asociados. No se puede eliminar");
+
+            
             try
             {
                 var resultado = await _tipoSensorRepository
@@ -102,7 +117,6 @@ namespace ColomBEE_CSharp_Relacional.API.Services
 
             if (string.IsNullOrEmpty(unTipoSensor.UnidadMedida))
                 return "No se puede insertar un tipo de sensor con unidad de medida nula";
-
             
             return string.Empty;
         }

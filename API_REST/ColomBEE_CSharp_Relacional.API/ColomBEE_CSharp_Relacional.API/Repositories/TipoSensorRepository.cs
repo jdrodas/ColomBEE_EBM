@@ -32,31 +32,36 @@ namespace ColomBEE_CSharp_Relacional.API.Repositories
             {
                 throw new DbOperationException(error.Message);
             }
-            
-
         }
         
         public async Task<TipoSensor> GetByIdAsync(Guid tipoSensorId)
         {
-            TipoSensor unTipoSensor = new();
-            var conexion = _contextoDb.CreateConnection();
+            try
+            {
+                TipoSensor unTipoSensor = new();
+                var conexion = _contextoDb.CreateConnection();
 
-            DynamicParameters parametrosSentencia = new();
-            parametrosSentencia.Add("@tipoSensorId", tipoSensorId,
-                DbType.Guid, ParameterDirection.Input);
+                DynamicParameters parametrosSentencia = new();
+                parametrosSentencia.Add("@tipoSensorId", tipoSensorId,
+                    DbType.Guid, ParameterDirection.Input);
 
-            string sentenciaSQL =
-                "SELECT DISTINCT id, nombre, unidad_medida UnidadMedida " +
-                "FROM core.tipos_sensores " +
-                "WHERE id = @tipoSensorId ";
+                string sentenciaSQL =
+                    "SELECT DISTINCT id, nombre, unidad_medida UnidadMedida " +
+                    "FROM core.tipos_sensores " +
+                    "WHERE id = @tipoSensorId ";
 
-            var resultado = await conexion
-                .QueryAsync<TipoSensor>(sentenciaSQL, parametrosSentencia);
+                var resultado = await conexion
+                    .QueryAsync<TipoSensor>(sentenciaSQL, parametrosSentencia);
 
-            if (resultado.Any())
-                unTipoSensor = resultado.First();
+                if (resultado.Any())
+                    unTipoSensor = resultado.First();
 
-            return unTipoSensor;
+                return unTipoSensor;
+            }
+            catch (NpgsqlException error)
+            {
+                throw new DbOperationException(error.Message);
+            }
         }
         
         public async Task<TipoSensor> GetByDetailsAsync(TipoSensor unTipoSensor)
@@ -84,6 +89,24 @@ namespace ColomBEE_CSharp_Relacional.API.Repositories
 
             return tipoSensorEncontrado;
         }  
+        
+        public async Task<long> GetTotalAssociatedSensorsAsync(Guid tipoSensorId)
+        {
+            var conexion = _contextoDb.CreateConnection();
+            
+            DynamicParameters parametrosSentencia = new();
+            parametrosSentencia.Add("@tipoSensorId", tipoSensorId,
+                DbType.Guid, ParameterDirection.Input);
+            
+            var sentenciaSql =
+                "SELECT COUNT(id) total FROM core.sensores " +
+                "WHERE tipo_id = @tipoSensorId";
+
+            var totalSensores = await conexion
+                .QueryFirstAsync<long>(sentenciaSql, parametrosSentencia);
+
+            return totalSensores;
+        }
         
         public async Task<bool> CreateAsync(TipoSensor unTipoSensor)
         {

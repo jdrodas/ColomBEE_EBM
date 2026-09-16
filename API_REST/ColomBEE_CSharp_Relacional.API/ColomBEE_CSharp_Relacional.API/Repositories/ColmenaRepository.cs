@@ -14,19 +14,26 @@ namespace ColomBEE_CSharp_Relacional.API.Repositories
         
         public async Task<List<Colmena>> GetAllAsync()
         {
-            var conexion = _contextoDb.CreateConnection();
+            try
+            {
+                var conexion = _contextoDb.CreateConnection();
 
-            string sentenciaSQL =
-                "SELECT DISTINCT c.id, c.apiario_id ApiarioId, a.nombre ApiarioNombre, " +
-                "c.codigo, to_char(c.fecha_instalacion,'DD/MM/YYYY') FechaInstalacion  " +
-                "FROM core.colmenas c JOIN core.apiarios a ON " +
-                "c.apiario_id = a.id " +
-                "ORDER BY a.nombre ";
+                string sentenciaSQL =
+                    "SELECT DISTINCT c.id, c.apiario_id ApiarioId, a.nombre ApiarioNombre, " +
+                    "c.codigo, to_char(c.fecha_instalacion,'DD/MM/YYYY') FechaInstalacion  " +
+                    "FROM core.colmenas c JOIN core.apiarios a ON " +
+                    "c.apiario_id = a.id " +
+                    "ORDER BY a.nombre ";
 
-            var resultadoColmenas = await conexion
-                .QueryAsync<Colmena>(sentenciaSQL, new DynamicParameters());
+                var resultadoColmenas = await conexion
+                    .QueryAsync<Colmena>(sentenciaSQL, new DynamicParameters());
 
-            return [.. resultadoColmenas];
+                return [.. resultadoColmenas];
+            }
+            catch (NpgsqlException error)
+            {
+                throw new DbOperationException(error.Message);
+            }
         }
         
         public async Task<Colmena> GetByIdAsync(Guid colmenaId)

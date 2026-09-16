@@ -9,20 +9,43 @@ namespace ColomBEE_CSharp_Relacional.API.Controllers.V1
     [ApiController]
     [ApiVersion("1.0")]
     [Route("api/colmenas")]
+    [Produces("application/json")]
     public class ColmenasController(ColmenaService colmenaService) : Controller
     {
         private readonly ColmenaService _colmenaService = colmenaService;
         
         [HttpGet]
+        [ProducesResponseType(typeof(List<Colmena>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+
         public async Task<IActionResult> GetAllAsync()
         {
-            var lasColmenas = await _colmenaService
-                .GetAllAsync();
+            try
+            {
+                var lasColmenas = await _colmenaService
+                    .GetAllAsync();
 
-            return Ok(lasColmenas);
+                return Ok(lasColmenas);
+            }
+            catch (DbOperationException error)
+            {
+                var unProblema = new ProblemDetails
+                {
+                    Status = StatusCodes.Status500InternalServerError,
+                    Title = "Error en bases de datos",
+                    Detail = error.Message
+                };
+                
+                return StatusCode(StatusCodes.Status500InternalServerError, unProblema);
+            }
+
         }
         
         [HttpGet("{colmenaId:Guid}")]
+        [ProducesResponseType(typeof(Colmena), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+
         public async Task<IActionResult> GetByIdAsync(Guid colmenaId)
         {
             try
@@ -34,11 +57,33 @@ namespace ColomBEE_CSharp_Relacional.API.Controllers.V1
             }
             catch (EmptyCollectionException error)
             {
-                return NotFound($"Error de validación: {error.Message}");
+                var unProblema = new ProblemDetails
+                {
+                    Status = StatusCodes.Status404NotFound,
+                    Title = "Registro no encontrado con ese Id",
+                    Detail = error.Message
+                };
+                
+                return StatusCode(StatusCodes.Status404NotFound, unProblema);
+            }
+            catch (DbOperationException error)
+            {
+                var unProblema = new ProblemDetails
+                {
+                    Status = StatusCodes.Status500InternalServerError,
+                    Title = "Error en bases de datos",
+                    Detail = error.Message
+                };
+                
+                return StatusCode(StatusCodes.Status500InternalServerError, unProblema);
             }
         }
         
         [HttpPost]
+        [ProducesResponseType(typeof(Colmena), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateAsync(Colmena unaColmena)
         {
             try
@@ -50,11 +95,36 @@ namespace ColomBEE_CSharp_Relacional.API.Controllers.V1
             }
             catch (AppValidationException error)
             {
-                return BadRequest($"Error de validación: {error.Message}");
+                var unProblema = new ProblemDetails
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Error en aplicación al procesar solicitud",
+                    Detail = error.Message
+                };
+                
+                return StatusCode(StatusCodes.Status400BadRequest, unProblema);
             }
             catch (DbOperationException error)
             {
-                return BadRequest($"Error de operacion en DB: {error.Message}");
+                var unProblema = new ProblemDetails
+                {
+                    Status = StatusCodes.Status500InternalServerError,
+                    Title = "Error en bases de datos",
+                    Detail = error.Message
+                };
+                
+                return StatusCode(StatusCodes.Status500InternalServerError, unProblema);
+            }
+            catch (ConflictException error)
+            {
+                var unProblema = new ProblemDetails
+                {
+                    Status = StatusCodes.Status409Conflict,
+                    Title = "Conflicto al procesar la solicitud",
+                    Detail = error.Message
+                };
+                
+                return StatusCode(StatusCodes.Status409Conflict, unProblema);
             }
         }
     }

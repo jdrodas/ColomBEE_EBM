@@ -161,7 +161,7 @@ $$
         from core.colmenas
         where upper(p_codigo) = upper(codigo)
         and p_apiario_id = apiario_id
-        and p_fecha_instalacion = fecha_instalacion;
+        and to_date(p_fecha_instalacion,'DD/MM/YYYY') = fecha_instalacion;
 
         if l_total_registros != 0  then
             raise exception 'ya existe esa colmena registrada con ese codigo, apiario y fecha de instalación.';

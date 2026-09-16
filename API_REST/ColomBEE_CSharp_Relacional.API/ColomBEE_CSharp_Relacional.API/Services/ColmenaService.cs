@@ -14,8 +14,15 @@ namespace ColomBEE_CSharp_Relacional.API.Services
         
         public async Task<List<Colmena>> GetAllAsync()
         {
-            return await _colmenaRepository
-                .GetAllAsync();
+            try
+            {
+                return await _colmenaRepository
+                    .GetAllAsync();
+            }
+            catch (DbOperationException)
+            {
+                throw;
+            }
         }
         
         public async Task<Colmena> GetByIdAsync(Guid colmenaId)
@@ -43,7 +50,7 @@ namespace ColomBEE_CSharp_Relacional.API.Services
                 .GetByIdAsync(unaColmena.ApiarioId);
             
             if (apiarioExistente.Id == Guid.Empty)
-                throw new AppValidationException("No existe apiario con Id {unaColmena.ApiarioId}");
+                throw new AppValidationException($"No existe apiario con Id {unaColmena.ApiarioId}");
 
             unaColmena.ApiarioNombre = apiarioExistente.Nombre;
             
@@ -51,7 +58,8 @@ namespace ColomBEE_CSharp_Relacional.API.Services
                 .GetByDetailsAsync(unaColmena);
 
             if (colmenaExistente.Id != Guid.Empty)
-                return colmenaExistente;
+                throw new ConflictException($"No se puede crear la colmena {unaColmena.Codigo} " +
+                                            $"porque ya existe con id {colmenaExistente.Id}");
             
             try
             {
@@ -87,11 +95,11 @@ namespace ColomBEE_CSharp_Relacional.API.Services
                     out DateTime fechaResultante);
 
             if (!fechaValida)
-                throw new AppValidationException($"La fecha de instalación {unaColmena.FechaInstalacion} no tiene el formato DD/MM/YYYY");
+                return $"La fecha de instalación {unaColmena.FechaInstalacion} no tiene el formato DD/MM/YYYY";
 
-            if (fechaResultante >= DateTime.Now)
-                throw new AppValidationException($"No se puede registrar colmenas con fecha de instalación futura. " +
-                                                 $"La fecha actual es {DateTime.Now:DD/MM/YYYY}");
+            if (fechaResultante > DateTime.Now)
+                return $"No se puede registrar colmenas con fecha de instalación futura. " +
+                      $"La fecha actual es {DateTime.Now:dd/MM/yyyy}";
             
             return string.Empty;
         }
