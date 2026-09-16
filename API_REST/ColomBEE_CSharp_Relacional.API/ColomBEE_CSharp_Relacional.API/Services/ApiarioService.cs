@@ -11,8 +11,15 @@ namespace ColomBEE_CSharp_Relacional.API.Services
 
         public async Task<List<Apiario>> GetAllAsync()
         {
-            return await _apiarioRepository
-                .GetAllAsync();
+            try
+            {
+                return await _apiarioRepository 
+                    .GetAllAsync(); 
+            }
+            catch (DbOperationException)
+            {
+                throw;
+            }
         }
         
         public async Task<Apiario> GetByIdAsync(Guid apiarioId)
@@ -38,7 +45,9 @@ namespace ColomBEE_CSharp_Relacional.API.Services
             var apiarioExistente = await _apiarioRepository
                 .GetByDetailsAsync(unApiario);
 
-            if (apiarioExistente.Equals(unApiario))
+            if(apiarioExistente.Nombre!.ToLower().Equals(unApiario.Nombre!.ToLower()) &&
+               apiarioExistente.Latitud==unApiario.Latitud &&
+               apiarioExistente.Longitud==unApiario.Longitud)
                 return apiarioExistente;
 
             try
@@ -58,6 +67,38 @@ namespace ColomBEE_CSharp_Relacional.API.Services
             }
 
             return apiarioExistente;
+        }
+        
+        public async Task<string> RemoveAsync(Guid apiarioId)
+        {
+            var respuesta = "resultado";
+            
+            var apiarioExistente = await _apiarioRepository
+                .GetByIdAsync(apiarioId);
+
+            if (apiarioExistente.Id == Guid.Empty)
+                throw new EmptyCollectionException($"No hay un apiario con id {apiarioId}");
+
+            var totalColmenasAsociadas = await _apiarioRepository
+                .GetTotalAssociatedBeehivesAsync(apiarioId);
+            
+            if(totalColmenasAsociadas >0)
+                throw new AppValidationException($"El apiario con id {apiarioId} tiene {totalColmenasAsociadas} colmenas asociadas. No se puede eliminar");
+
+            try
+            {
+                var resultado = await _apiarioRepository
+                    .RemoveAsync(apiarioId);
+                
+                if (resultado)
+                    respuesta = $"Eliminado el apiario {apiarioExistente.Nombre}.";
+            }
+            catch (DbOperationException)
+            {
+                throw;
+            }
+
+            return respuesta;
         }
         
         private static string EvaluateApiaryDetailsAsync(Apiario unApiario)

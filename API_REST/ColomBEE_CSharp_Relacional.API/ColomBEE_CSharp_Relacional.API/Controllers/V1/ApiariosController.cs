@@ -9,20 +9,40 @@ namespace ColomBEE_CSharp_Relacional.API.Controllers.V1
     [ApiController]
     [ApiVersion("1.0")]
     [Route("api/apiarios")]
+    [Produces("application/json")]
     public class ApiariosController(ApiarioService apiarioService) : Controller
     {
         private readonly ApiarioService _apiarioService = apiarioService;
         
         [HttpGet]
+        [ProducesResponseType(typeof(List<Apiario>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllAsync()
         {
-            var losAPiarios = await _apiarioService
-                .GetAllAsync();
+            try
+            {
+                var losAPiarios = await _apiarioService
+                    .GetAllAsync();
 
-            return Ok(losAPiarios);
+                return Ok(losAPiarios);
+            }
+            catch (DbOperationException error)
+            {
+                var unProblema = new ProblemDetails
+                {
+                    Status = StatusCodes.Status500InternalServerError,
+                    Title = "Error en bases de datos",
+                    Detail = error.Message
+                };
+                
+                return StatusCode(StatusCodes.Status500InternalServerError, unProblema);
+            }
         }
         
         [HttpGet("{apiarioId:Guid}")]
+        [ProducesResponseType(typeof(Apiario), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetByIdAsync(Guid apiarioId)
         {
             try
@@ -34,11 +54,32 @@ namespace ColomBEE_CSharp_Relacional.API.Controllers.V1
             }
             catch (EmptyCollectionException error)
             {
-                return NotFound($"Error de validación: {error.Message}");
+                var unProblema = new ProblemDetails
+                {
+                    Status = StatusCodes.Status404NotFound,
+                    Title = "Registro no encontrado con ese Id",
+                    Detail = error.Message
+                };
+                
+                return StatusCode(StatusCodes.Status404NotFound, unProblema);
+            }
+            catch (DbOperationException error)
+            {
+                var unProblema = new ProblemDetails
+                {
+                    Status = StatusCodes.Status500InternalServerError,
+                    Title = "Error en bases de datos",
+                    Detail = error.Message
+                };
+                
+                return StatusCode(StatusCodes.Status500InternalServerError, unProblema);
             }
         }
         
         [HttpPost]
+        [ProducesResponseType(typeof(Apiario), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateAsync(Apiario unApiario)
         {
             try
@@ -46,15 +87,78 @@ namespace ColomBEE_CSharp_Relacional.API.Controllers.V1
                 var apiarioCreado = await _apiarioService
                     .CreateAsync(unApiario);
 
-                return Ok(apiarioCreado);
+                return StatusCode(StatusCodes.Status201Created, apiarioCreado);
             }
             catch (AppValidationException error)
             {
-                return BadRequest($"Error de validación: {error.Message}");
+                var unProblema = new ProblemDetails
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Error en aplicación al procesar solicitud",
+                    Detail = error.Message
+                };
+                
+                return StatusCode(StatusCodes.Status400BadRequest, unProblema);
             }
             catch (DbOperationException error)
             {
-                return BadRequest($"Error de operacion en DB: {error.Message}");
+                var unProblema = new ProblemDetails
+                {
+                    Status = StatusCodes.Status500InternalServerError,
+                    Title = "Error en bases de datos",
+                    Detail = error.Message
+                };
+                
+                return StatusCode(StatusCodes.Status500InternalServerError, unProblema);
+            }
+        }
+        
+        [HttpDelete("{apiarioId:Guid}")]
+        [ProducesResponseType(typeof(Apiario), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> RemoveAsync(Guid apiarioId)
+        {
+            try
+            {
+                var apiarioEliminado = await _apiarioService
+                    .RemoveAsync(apiarioId);
+
+                return Ok(apiarioEliminado);
+            }
+            catch (EmptyCollectionException error)
+            {
+                var unProblema = new ProblemDetails
+                {
+                    Status = StatusCodes.Status404NotFound,
+                    Title = "Registro no encontrado con ese Id",
+                    Detail = error.Message
+                };
+                
+                return StatusCode(StatusCodes.Status404NotFound, unProblema);
+            }
+            catch (AppValidationException error)
+            {
+                var unProblema = new ProblemDetails
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Error en aplicación al procesar solicitud",
+                    Detail = error.Message
+                };
+                
+                return StatusCode(StatusCodes.Status400BadRequest, unProblema);
+            }
+            catch (DbOperationException error)
+            {
+                var unProblema = new ProblemDetails
+                {
+                    Status = StatusCodes.Status500InternalServerError,
+                    Title = "Error en bases de datos",
+                    Detail = error.Message
+                };
+                
+                return StatusCode(StatusCodes.Status500InternalServerError, unProblema);
             }
         }
     }

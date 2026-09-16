@@ -7,7 +7,9 @@ namespace ColomBEE_CSharp_Relacional.API.Interfaces
         public Task<List<Apiario>> GetAllAsync();
         public Task<Apiario> GetByIdAsync(Guid apiarioId);
         public Task<Apiario> GetByDetailsAsync(Apiario unApiario);
+        public Task<long> GetTotalAssociatedBeehivesAsync(Guid apiarioId);
         public Task<bool> CreateAsync(Apiario unApiario);
+        public Task<bool> RemoveAsync(Guid apiarioId);
     }
 }
 

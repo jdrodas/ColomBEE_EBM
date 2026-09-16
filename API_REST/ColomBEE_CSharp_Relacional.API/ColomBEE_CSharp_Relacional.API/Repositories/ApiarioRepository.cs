@@ -14,17 +14,24 @@ namespace ColomBEE_CSharp_Relacional.API.Repositories
         
         public async Task<List<Apiario>> GetAllAsync()
         {
-            var conexion = _contextoDb.CreateConnection();
+            try
+            {
+                var conexion = _contextoDb.CreateConnection();
 
-            string sentenciaSQL =
-                "SELECT DISTINCT id, nombre, latitud, longitud " +
-                "FROM core.apiarios " +
-                "ORDER BY nombre ";
+                string sentenciaSQL =
+                    "SELECT DISTINCT id, nombre, latitud, longitud " +
+                    "FROM core.apiarios " +
+                    "ORDER BY nombre ";
 
-            var resultadoApiarios = await conexion
-                .QueryAsync<Apiario>(sentenciaSQL, new DynamicParameters());
+                var resultadoApiarios = await conexion
+                    .QueryAsync<Apiario>(sentenciaSQL, new DynamicParameters());
 
-            return [.. resultadoApiarios];
+                return [.. resultadoApiarios];
+            }
+            catch (NpgsqlException error)
+            {
+                throw new DbOperationException(error.Message);
+            }
         }
         
         public async Task<Apiario> GetByIdAsync(Guid apiarioId)
@@ -76,8 +83,26 @@ namespace ColomBEE_CSharp_Relacional.API.Repositories
                 apiarioEncontrado = resultado.First();
 
             return apiarioEncontrado;
-        }        
-        
+        }
+
+        public async Task<long> GetTotalAssociatedBeehivesAsync(Guid apiarioId)
+        {
+            var conexion = _contextoDb.CreateConnection();
+            
+            DynamicParameters parametrosSentencia = new();
+            parametrosSentencia.Add("@apiarioId", apiarioId,
+                DbType.Guid, ParameterDirection.Input);
+            
+            var sentenciaSql =
+                "SELECT COUNT(id) total FROM core.colmenas " +
+                "WHERE apiario_id = @apiarioId";
+
+            var totalColmenas = await conexion
+                .QueryFirstAsync<long>(sentenciaSql, parametrosSentencia);
+
+            return totalColmenas;
+        }
+
         public async Task<bool> CreateAsync(Apiario unApiario)
         {
             bool resultadoAccion = false;
@@ -92,6 +117,36 @@ namespace ColomBEE_CSharp_Relacional.API.Repositories
                     p_nombre = unApiario.Nombre,
                     p_latitud = unApiario.Latitud,
                     p_longitud = unApiario.Longitud
+                };
+
+                var cantidad_filas = await conexion.ExecuteAsync(
+                    procedimiento,
+                    parametros,
+                    commandType: CommandType.StoredProcedure);
+
+                if (cantidad_filas != 0)
+                    resultadoAccion = true;
+            }
+            catch (NpgsqlException error)
+            {
+                throw new DbOperationException(error.Message);
+            }
+
+            return resultadoAccion;
+        }
+        
+        public async Task<bool> RemoveAsync(Guid apiarioId)
+        {
+            bool resultadoAccion = false;
+
+            try
+            {
+                var conexion = _contextoDb.CreateConnection();
+
+                string procedimiento = "core.p_elimina_apiario";
+                var parametros = new
+                {
+                    p_id = apiarioId
                 };
 
                 var cantidad_filas = await conexion.ExecuteAsync(

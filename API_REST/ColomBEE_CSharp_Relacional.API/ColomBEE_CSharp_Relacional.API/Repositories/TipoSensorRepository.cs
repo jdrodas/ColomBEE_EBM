@@ -14,8 +14,6 @@ namespace ColomBEE_CSharp_Relacional.API.Repositories
         
         public async Task<List<TipoSensor>> GetAllAsync()
         {
-            List<TipoSensor> losSensores = new();
-            
             try
             {
                 var conexion = _contextoDb.CreateConnection();
@@ -28,14 +26,14 @@ namespace ColomBEE_CSharp_Relacional.API.Repositories
                 var resultadoTiposSensores = await conexion
                     .QueryAsync<TipoSensor>(sentenciaSQL, new DynamicParameters());
 
-                losSensores = resultadoTiposSensores.ToList();
+                return [.. resultadoTiposSensores];
             }
             catch (NpgsqlException error)
             {
                 throw new DbOperationException(error.Message);
             }
             
-            return losSensores;
+
         }
         
         public async Task<TipoSensor> GetByIdAsync(Guid tipoSensorId)
