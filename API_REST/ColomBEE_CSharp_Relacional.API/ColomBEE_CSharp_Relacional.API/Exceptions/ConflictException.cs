@@ -1,6 +1,5 @@
-namespace ColomBEE_CSharp_Relacional.API.Exceptions
+namespace ColomBEE_CSharp_Relacional.API.Exceptions;
+
+public class ConflictException(string message) : Exception(message)
 {
-    public class ConflictException(string message) : Exception(message)
-    {
-    }
 }

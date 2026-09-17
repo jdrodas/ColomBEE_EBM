@@ -1,14 +1,14 @@
-using Npgsql;
 using System.Data;
+using Npgsql;
 
-namespace ColomBEE_CSharp_Relacional.API.DbContexts
+namespace ColomBEE_CSharp_Relacional.API.DbContexts;
+
+public class PgsqlDbContext(IConfiguration unaConfiguracion)
 {
-    public class PgsqlDbContext(IConfiguration unaConfiguracion)
+    private readonly string _cadenaConexion = unaConfiguracion.GetConnectionString("ColomBEEPL")!;
+
+    public IDbConnection CreateConnection()
     {
-        private readonly string _cadenaConexion = unaConfiguracion.GetConnectionString("ColomBEEPL")!;
-        public IDbConnection CreateConnection()
-        {
-            return new NpgsqlConnection(_cadenaConexion);
-        }
+        return new NpgsqlConnection(_cadenaConexion);
     }
 }

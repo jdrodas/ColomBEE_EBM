@@ -1,13 +1,10 @@
 using Asp.Versioning;
-using Asp.Versioning.ApiExplorer;
 using ColomBEE_CSharp_Relacional.API.DbContexts;
 using ColomBEE_CSharp_Relacional.API.Interfaces;
 using ColomBEE_CSharp_Relacional.API.Models;
 using ColomBEE_CSharp_Relacional.API.Repositories;
 using ColomBEE_CSharp_Relacional.API.Services;
 using Microsoft.OpenApi;
-using Microsoft.Extensions.Options;
-using Swashbuckle.AspNetCore.SwaggerGen;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,8 +52,7 @@ builder.Services.AddScoped<SensorService>();
 
 // Add services to the container.
 builder.Services.AddControllers()
-    .AddJsonOptions(
-        options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
+    .AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
 
 // ***************************************************************************
 // --- Configuración del versionamiento para el API  --
@@ -90,13 +86,13 @@ builder.Services.AddSwaggerGen(options =>
     options.SwaggerDoc("v1", new OpenApiInfo
     {
         Version = "v1",
-        Title = "ColomBEE-EBM.API v1 - PostgreSQL",
+        Title = "ColomBEE-EBM.API v1 - PostgreSQL"
     });
 
     options.SwaggerDoc("v2", new OpenApiInfo
     {
         Version = "v2",
-        Title = "ColomBEE-EBM.API v2 - PostgreSQL",
+        Title = "ColomBEE-EBM.API v2 - PostgreSQL"
     });
 });
 
@@ -107,11 +103,11 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(config =>
-    {
-        // Configuración manual de cada endpoint
-        config.SwaggerEndpoint("/swagger/v1/swagger.json", "ColomBEE-EBM.API v1");
-        config.SwaggerEndpoint("/swagger/v2/swagger.json", "ColomBEE-EBM.API v2");
-    }
+        {
+            // Configuración manual de cada endpoint
+            config.SwaggerEndpoint("/swagger/v1/swagger.json", "ColomBEE-EBM.API v1");
+            config.SwaggerEndpoint("/swagger/v2/swagger.json", "ColomBEE-EBM.API v2");
+        }
     );
 }
 

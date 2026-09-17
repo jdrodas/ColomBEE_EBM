@@ -1,124 +1,96 @@
+using ColomBEE_CSharp_Relacional.API.Exceptions;
 using ColomBEE_CSharp_Relacional.API.Interfaces;
 using ColomBEE_CSharp_Relacional.API.Models;
-using ColomBEE_CSharp_Relacional.API.Exceptions;
 
-namespace ColomBEE_CSharp_Relacional.API.Services
+namespace ColomBEE_CSharp_Relacional.API.Services;
+
+public class TipoSensorService(ITipoSensorRepository tipoSensorRepository)
 {
+    private readonly ITipoSensorRepository _tipoSensorRepository = tipoSensorRepository;
 
-    public class TipoSensorService(ITipoSensorRepository tipoSensorRepository)
+    public async Task<List<TipoSensor>> GetAllAsync()
     {
-        private readonly ITipoSensorRepository _tipoSensorRepository = tipoSensorRepository;
+        return await _tipoSensorRepository
+            .GetAllAsync();
+    }
 
-        public async Task<List<TipoSensor>> GetAllAsync()
-        {
-            try
-            {
-                return await _tipoSensorRepository 
-                    .GetAllAsync(); 
-            }
-            catch (DbOperationException)
-            {
-                throw;
-            }
-        }
-        
-        public async Task<TipoSensor> GetByIdAsync(Guid tipoSensorId)
-        {
-            try
-            {
-                TipoSensor unTipoSensor = await _tipoSensorRepository
-                    .GetByIdAsync(tipoSensorId);
+    public async Task<TipoSensor> GetByIdAsync(Guid tipoSensorId)
+    {
+        var unTipoSensor = await _tipoSensorRepository
+            .GetByIdAsync(tipoSensorId);
 
-                if (unTipoSensor.Id == Guid.Empty)
-                    throw new EmptyCollectionException($"Tipo Sensor no encontrado con el Id {tipoSensorId}");
+        if (unTipoSensor.Id == Guid.Empty)
+            throw new EmptyCollectionException($"Tipo Sensor no encontrado con el Id {tipoSensorId}");
 
-                return unTipoSensor;                
-            }
-            catch (DbOperationException)
-            {
-                throw;
-            }
-        }
-        
-        public async Task<TipoSensor> CreateAsync(TipoSensor unTipoSensor)
-        {
-            unTipoSensor.Nombre = unTipoSensor.Nombre!.Trim();
-            unTipoSensor.UnidadMedida = unTipoSensor.UnidadMedida!.Trim();
-            
-            string resultadoValidacion = EvaluateSensorTypeDetailsAsync(unTipoSensor);
+        return unTipoSensor;
+    }
 
-            if (!string.IsNullOrEmpty(resultadoValidacion))
-                throw new AppValidationException(resultadoValidacion);
+    public async Task<TipoSensor> CreateAsync(TipoSensor unTipoSensor)
+    {
+        unTipoSensor.Nombre = unTipoSensor.Nombre!.Trim();
+        unTipoSensor.UnidadMedida = unTipoSensor.UnidadMedida!.Trim();
 
-            var tipoSensorExistente = await _tipoSensorRepository
-                .GetByDetailsAsync(unTipoSensor);
+        var resultadoValidacion = EvaluateSensorTypeDetailsAsync(unTipoSensor);
 
-            if(tipoSensorExistente.Nombre!.ToUpper().Equals(unTipoSensor.Nombre.ToUpper()) &&
-               tipoSensorExistente.UnidadMedida!.ToUpper().Equals(unTipoSensor.UnidadMedida.ToUpper()))
-                throw new ConflictException($"No se puede crear el tipo de sensor {unTipoSensor.Nombre} " +
-                                            $"porque ya existe con id {tipoSensorExistente.Id}");
+        if (!string.IsNullOrEmpty(resultadoValidacion))
+            throw new AppValidationException(resultadoValidacion);
 
-            try
-            {
-                bool resultadoAccion = await _tipoSensorRepository
-                    .CreateAsync(unTipoSensor);
+        var tipoSensorExistente = await _tipoSensorRepository
+            .GetByDetailsAsync(unTipoSensor);
 
-                if (!resultadoAccion)
-                    throw new AppValidationException("Operación ejecutada pero no generó cambios en la DB");
+        if (tipoSensorExistente.Nombre!.ToUpper().Equals(unTipoSensor.Nombre.ToUpper()) &&
+            tipoSensorExistente.UnidadMedida!.ToUpper().Equals(unTipoSensor.UnidadMedida.ToUpper()))
+            throw new ConflictException($"No se puede crear el tipo de sensor {unTipoSensor.Nombre} " +
+                                        $"porque ya existe con id {tipoSensorExistente.Id}");
 
-                tipoSensorExistente = await _tipoSensorRepository
-                    .GetByDetailsAsync(unTipoSensor);
-            }
-            catch (DbOperationException)
-            {
-                throw;
-            }
+        var resultadoAccion = await _tipoSensorRepository
+            .CreateAsync(unTipoSensor);
 
-            return tipoSensorExistente;
-        }
+        if (!resultadoAccion)
+            throw new AppValidationException("Operación ejecutada pero no generó cambios en la DB");
 
-        public async Task<string> RemoveAsync(Guid tipoSensorId)
-        {
-            var respuesta = "resultado";
-            
-            var tipoSensorExistente = await _tipoSensorRepository
-                .GetByIdAsync(tipoSensorId);
+        tipoSensorExistente = await _tipoSensorRepository
+            .GetByDetailsAsync(unTipoSensor);
 
-            if (tipoSensorExistente.Id == Guid.Empty)
-                throw new EmptyCollectionException($"No hay un tipo de sensor con id {tipoSensorId}");
+        return tipoSensorExistente;
+    }
 
-            var totalSensoresAsociados = await _tipoSensorRepository
-                .GetTotalAssociatedSensorsAsync(tipoSensorId);
-            
-            if(totalSensoresAsociados >0)
-                throw new AppValidationException($"El tipo de sensor con id {tipoSensorId} tiene {totalSensoresAsociados} sensores asociados. No se puede eliminar");
+    public async Task<string> RemoveAsync(Guid tipoSensorId)
+    {
+        var respuesta = "resultado";
 
-            
-            try
-            {
-                var resultado = await _tipoSensorRepository
-                    .RemoveAsync(tipoSensorId);
-                
-                if (resultado)
-                    respuesta = $"Eliminado el tipo de sensor {tipoSensorExistente.Nombre} con unidad de medida {tipoSensorExistente.UnidadMedida}";
-            }
-            catch (DbOperationException)
-            {
-                throw;
-            }
+        var tipoSensorExistente = await _tipoSensorRepository
+            .GetByIdAsync(tipoSensorId);
 
-            return respuesta;
-        }
+        if (tipoSensorExistente.Id == Guid.Empty)
+            throw new EmptyCollectionException($"No hay un tipo de sensor con id {tipoSensorId}");
 
-        private static string EvaluateSensorTypeDetailsAsync(TipoSensor unTipoSensor)
-        {
-            if (string.IsNullOrEmpty(unTipoSensor.Nombre))
-                return "No se puede insertar un tipo de sensor con nombre nulo";
+        var totalSensoresAsociados = await _tipoSensorRepository
+            .GetTotalAssociatedSensorsAsync(tipoSensorId);
 
-            if (string.IsNullOrEmpty(unTipoSensor.UnidadMedida))
-                return "No se puede insertar un tipo de sensor con unidad de medida nula";
-            
-            return string.Empty;
-        }
+        if (totalSensoresAsociados > 0)
+            throw new AppValidationException(
+                $"El tipo de sensor con id {tipoSensorId} tiene {totalSensoresAsociados} sensores asociados. No se puede eliminar");
+
+
+        var resultado = await _tipoSensorRepository
+            .RemoveAsync(tipoSensorId);
+
+        if (resultado)
+            respuesta =
+                $"Eliminado el tipo de sensor {tipoSensorExistente.Nombre} con unidad de medida {tipoSensorExistente.UnidadMedida}";
+
+        return respuesta;
+    }
+
+    private static string EvaluateSensorTypeDetailsAsync(TipoSensor unTipoSensor)
+    {
+        if (string.IsNullOrEmpty(unTipoSensor.Nombre))
+            return "No se puede insertar un tipo de sensor con nombre nulo";
+
+        if (string.IsNullOrEmpty(unTipoSensor.UnidadMedida))
+            return "No se puede insertar un tipo de sensor con unidad de medida nula";
+
+        return string.Empty;
     }
 }

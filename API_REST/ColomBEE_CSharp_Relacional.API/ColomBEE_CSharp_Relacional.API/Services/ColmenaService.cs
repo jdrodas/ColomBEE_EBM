@@ -1,108 +1,92 @@
+using System.Globalization;
+using ColomBEE_CSharp_Relacional.API.Exceptions;
 using ColomBEE_CSharp_Relacional.API.Interfaces;
 using ColomBEE_CSharp_Relacional.API.Models;
-using ColomBEE_CSharp_Relacional.API.Exceptions;
-using System.Globalization;
 
-namespace ColomBEE_CSharp_Relacional.API.Services
+namespace ColomBEE_CSharp_Relacional.API.Services;
+
+public class ColmenaService(
+    IColmenaRepository colmenaRepository,
+    IApiarioRepository apiarioRepository)
 {
+    private readonly IApiarioRepository _apiarioRepository = apiarioRepository;
+    private readonly IColmenaRepository _colmenaRepository = colmenaRepository;
 
-    public class ColmenaService(IColmenaRepository colmenaRepository,
-                                IApiarioRepository apiarioRepository)
+    public async Task<List<Colmena>> GetAllAsync()
     {
-        private readonly IColmenaRepository _colmenaRepository = colmenaRepository;
-        private readonly IApiarioRepository _apiarioRepository = apiarioRepository;
-        
-        public async Task<List<Colmena>> GetAllAsync()
-        {
-            try
-            {
-                return await _colmenaRepository
-                    .GetAllAsync();
-            }
-            catch (DbOperationException)
-            {
-                throw;
-            }
-        }
-        
-        public async Task<Colmena> GetByIdAsync(Guid colmenaId)
-        {
-            Colmena unaColmena = await _colmenaRepository
-                .GetByIdAsync(colmenaId);
+        return await _colmenaRepository
+            .GetAllAsync();
+    }
 
-            if (unaColmena.Id == Guid.Empty)
-                throw new EmptyCollectionException($"Colmena no encontrada con el Id {colmenaId}");
+    public async Task<Colmena> GetByIdAsync(Guid colmenaId)
+    {
+        var unaColmena = await _colmenaRepository
+            .GetByIdAsync(colmenaId);
 
-            return unaColmena;
-        }
-        
-        public async Task<Colmena> CreateAsync(Colmena unaColmena)
-        {
-            unaColmena.Codigo = unaColmena.Codigo!.Trim();
-            unaColmena.FechaInstalacion = unaColmena.FechaInstalacion!.Trim();
+        if (unaColmena.Id == Guid.Empty)
+            throw new EmptyCollectionException($"Colmena no encontrada con el Id {colmenaId}");
 
-            string resultadoValidacion = EvaluateBeehiveDetailsAsync(unaColmena);
+        return unaColmena;
+    }
 
-            if (!string.IsNullOrEmpty(resultadoValidacion))
-                throw new AppValidationException(resultadoValidacion);
+    public async Task<Colmena> CreateAsync(Colmena unaColmena)
+    {
+        unaColmena.Codigo = unaColmena.Codigo!.Trim();
+        unaColmena.FechaInstalacion = unaColmena.FechaInstalacion!.Trim();
 
-            var apiarioExistente = await _apiarioRepository
-                .GetByIdAsync(unaColmena.ApiarioId);
-            
-            if (apiarioExistente.Id == Guid.Empty)
-                throw new AppValidationException($"No existe apiario con Id {unaColmena.ApiarioId}");
+        var resultadoValidacion = EvaluateBeehiveDetailsAsync(unaColmena);
 
-            unaColmena.ApiarioNombre = apiarioExistente.Nombre;
-            
-            var colmenaExistente = await _colmenaRepository
-                .GetByDetailsAsync(unaColmena);
+        if (!string.IsNullOrEmpty(resultadoValidacion))
+            throw new AppValidationException(resultadoValidacion);
 
-            if (colmenaExistente.Id != Guid.Empty)
-                throw new ConflictException($"No se puede crear la colmena {unaColmena.Codigo} " +
-                                            $"porque ya existe con id {colmenaExistente.Id}");
-            
-            try
-            {
-                bool resultadoAccion = await _colmenaRepository
-                    .CreateAsync(unaColmena);
+        var apiarioExistente = await _apiarioRepository
+            .GetByIdAsync(unaColmena.ApiarioId);
 
-                if (!resultadoAccion)
-                    throw new AppValidationException("Operación ejecutada pero no generó cambios en la DB");
+        if (apiarioExistente.Id == Guid.Empty)
+            throw new AppValidationException($"No existe apiario con Id {unaColmena.ApiarioId}");
 
-                colmenaExistente = await _colmenaRepository
-                    .GetByDetailsAsync(unaColmena);
-            }
-            catch (DbOperationException)
-            {
-                throw;
-            }
+        unaColmena.ApiarioNombre = apiarioExistente.Nombre;
 
-            return colmenaExistente;
-        }
-        
-        private static string EvaluateBeehiveDetailsAsync(Colmena unaColmena)
-        {
-            if (string.IsNullOrEmpty(unaColmena.Codigo))
-                return "No se puede insertar una colmena con codigo nulo";
+        var colmenaExistente = await _colmenaRepository
+            .GetByDetailsAsync(unaColmena);
 
-            if (string.IsNullOrEmpty(unaColmena.FechaInstalacion))
-                return "No se puede insertar una colmena con fecha de instalación nula";
-            
-            bool fechaValida = DateTime
-                .TryParseExact(
-                    unaColmena.FechaInstalacion, "dd/MM/yyyy",
-                    CultureInfo.InvariantCulture, DateTimeStyles.None,
-                    out DateTime fechaResultante);
+        if (colmenaExistente.Id != Guid.Empty)
+            throw new ConflictException($"No se puede crear la colmena {unaColmena.Codigo} " +
+                                        $"porque ya existe con id {colmenaExistente.Id}");
 
-            if (!fechaValida)
-                return $"La fecha de instalación {unaColmena.FechaInstalacion} no tiene el formato DD/MM/YYYY";
+        var resultadoAccion = await _colmenaRepository
+            .CreateAsync(unaColmena);
 
-            if (fechaResultante > DateTime.Now)
-                return $"No se puede registrar colmenas con fecha de instalación futura. " +
-                      $"La fecha actual es {DateTime.Now:dd/MM/yyyy}";
-            
-            return string.Empty;
-        }
+        if (!resultadoAccion)
+            throw new AppValidationException("Operación ejecutada pero no generó cambios en la DB");
 
+        colmenaExistente = await _colmenaRepository
+            .GetByDetailsAsync(unaColmena);
+
+        return colmenaExistente;
+    }
+
+    private static string EvaluateBeehiveDetailsAsync(Colmena unaColmena)
+    {
+        if (string.IsNullOrEmpty(unaColmena.Codigo))
+            return "No se puede insertar una colmena con codigo nulo";
+
+        if (string.IsNullOrEmpty(unaColmena.FechaInstalacion))
+            return "No se puede insertar una colmena con fecha de instalación nula";
+
+        var fechaValida = DateTime
+            .TryParseExact(
+                unaColmena.FechaInstalacion, "dd/MM/yyyy",
+                CultureInfo.InvariantCulture, DateTimeStyles.None,
+                out var fechaResultante);
+
+        if (!fechaValida)
+            return $"La fecha de instalación {unaColmena.FechaInstalacion} no tiene el formato DD/MM/YYYY";
+
+        if (fechaResultante > DateTime.Now)
+            return $"No se puede registrar colmenas con fecha de instalación futura. " +
+                   $"La fecha actual es {DateTime.Now:dd/MM/yyyy}";
+
+        return string.Empty;
     }
 }

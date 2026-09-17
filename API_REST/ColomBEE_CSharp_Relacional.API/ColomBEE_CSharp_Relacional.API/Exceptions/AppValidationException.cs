@@ -1,6 +1,5 @@
-namespace ColomBEE_CSharp_Relacional.API.Exceptions
+namespace ColomBEE_CSharp_Relacional.API.Exceptions;
+
+public class AppValidationException(string message) : Exception(message)
 {
-    public class AppValidationException(string message) : Exception(message)
-    {
-    }
 }
