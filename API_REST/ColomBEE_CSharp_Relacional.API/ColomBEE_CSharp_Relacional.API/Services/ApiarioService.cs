@@ -24,6 +24,23 @@ public class ApiarioService(IApiarioRepository apiarioRepository)
 
         return unApiario;
     }
+    
+    public async Task<List<Colmena>> GetAssociatedBeehivesAsync(Guid apiarioId)
+    {
+        var unApiario = await _apiarioRepository
+            .GetByIdAsync(apiarioId);
+
+        if (unApiario.Id == Guid.Empty)
+            throw new EmptyCollectionException($"Apiario no encontrado con el Id {apiarioId}");
+
+        var unasColmenasAsociadas = await _apiarioRepository
+            .GetAssociatedBeehivesAsync(apiarioId);
+        
+        if(unasColmenasAsociadas.Count==0)
+            throw new EmptyCollectionException($"Apiario {unApiario.Nombre} no tiene colmenas asociadas");
+        
+        return unasColmenasAsociadas;
+    }
 
     public async Task<Apiario> CreateAsync(Apiario unApiario)
     {
@@ -40,10 +57,47 @@ public class ApiarioService(IApiarioRepository apiarioRepository)
         if (apiarioExistente.Nombre!.ToLower().Equals(unApiario.Nombre!.ToLower()) &&
             apiarioExistente.Latitud == unApiario.Latitud &&
             apiarioExistente.Longitud == unApiario.Longitud)
-            return apiarioExistente;
+            throw new ConflictException($"No se puede crear el apiario {unApiario.Nombre} " +
+                                        $"porque ya existe con id {apiarioExistente.Id}");
 
         var resultadoAccion = await _apiarioRepository
             .CreateAsync(unApiario);
+
+        if (!resultadoAccion)
+            throw new AppValidationException("Operación ejecutada pero no generó cambios en la DB");
+
+        apiarioExistente = await _apiarioRepository
+            .GetByDetailsAsync(unApiario);
+
+        return apiarioExistente;
+    }
+    
+    public async Task<Apiario> UpdateAsync(Apiario unApiario)
+    {
+        unApiario.Nombre = unApiario.Nombre!.Trim();
+
+        var resultadoValidacion = EvaluateApiaryDetailsAsync(unApiario);
+
+        if (!string.IsNullOrEmpty(resultadoValidacion))
+            throw new AppValidationException(resultadoValidacion);
+
+        var apiarioExistente = await _apiarioRepository
+            .GetByIdAsync(unApiario.Id);
+        
+        if(apiarioExistente.Id == Guid.Empty)
+            throw new EmptyCollectionException($"No existe un apiario con Id: {unApiario.Id} que se pueda actualizar");
+        
+        apiarioExistente = await _apiarioRepository
+            .GetByDetailsAsync(unApiario);
+
+        if (apiarioExistente.Nombre!.ToLower().Equals(unApiario.Nombre!.ToLower()) &&
+            apiarioExistente.Latitud == unApiario.Latitud &&
+            apiarioExistente.Longitud == unApiario.Longitud)
+            throw new ConflictException($"No se puede actualizar el apiario {unApiario.Nombre} " +
+                                        $"porque ya existe con id {apiarioExistente.Id}");
+
+        var resultadoAccion = await _apiarioRepository
+            .UpdateAsync(unApiario);
 
         if (!resultadoAccion)
             throw new AppValidationException("Operación ejecutada pero no generó cambios en la DB");

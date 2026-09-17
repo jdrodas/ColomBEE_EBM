@@ -75,10 +75,47 @@ public class ApiariosController(ApiarioService apiarioService) : Controller
             return StatusCode(StatusCodes.Status500InternalServerError, unProblema);
         }
     }
+    [HttpGet("{apiarioId:Guid}/colmenas")]
+    [ProducesResponseType(typeof(List<Colmena>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetAssociatedBeehivesAsync(Guid apiarioId)
+    {
+        try
+        {
+            var lasColmenasAsociadas = await _apiarioService
+                .GetAssociatedBeehivesAsync(apiarioId);
+
+            return Ok(lasColmenasAsociadas);
+        }
+        catch (EmptyCollectionException error)
+        {
+            var unProblema = new ProblemDetails
+            {
+                Status = StatusCodes.Status404NotFound,
+                Title = "Registro no encontrado con ese Id",
+                Detail = error.Message
+            };
+
+            return StatusCode(StatusCodes.Status404NotFound, unProblema);
+        }
+        catch (DbOperationException error)
+        {
+            var unProblema = new ProblemDetails
+            {
+                Status = StatusCodes.Status500InternalServerError,
+                Title = "Error en bases de datos",
+                Detail = error.Message
+            };
+
+            return StatusCode(StatusCodes.Status500InternalServerError, unProblema);
+        }
+    }
 
     [HttpPost]
     [ProducesResponseType(typeof(Apiario), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CreateAsync(Apiario unApiario)
     {
@@ -99,6 +136,78 @@ public class ApiariosController(ApiarioService apiarioService) : Controller
             };
 
             return StatusCode(StatusCodes.Status400BadRequest, unProblema);
+        }
+        catch (ConflictException error)
+        {
+            var unProblema = new ProblemDetails
+            {
+                Status = StatusCodes.Status409Conflict,
+                Title = "Conflicto al procesar la solicitud",
+                Detail = error.Message
+            };
+
+            return StatusCode(StatusCodes.Status409Conflict, unProblema);
+        }
+        catch (DbOperationException error)
+        {
+            var unProblema = new ProblemDetails
+            {
+                Status = StatusCodes.Status500InternalServerError,
+                Title = "Error en bases de datos",
+                Detail = error.Message
+            };
+
+            return StatusCode(StatusCodes.Status500InternalServerError, unProblema);
+        }
+    }
+    
+    [HttpPut]
+    [ProducesResponseType(typeof(Apiario), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UpdateAsync(Apiario unApiario)
+    {
+        try
+        {
+            var apiarioActualizado = await _apiarioService
+                .UpdateAsync(unApiario);
+
+            return StatusCode(StatusCodes.Status200OK, apiarioActualizado);
+        }
+        catch (AppValidationException error)
+        {
+            var unProblema = new ProblemDetails
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Error en aplicación al procesar solicitud",
+                Detail = error.Message
+            };
+
+            return StatusCode(StatusCodes.Status400BadRequest, unProblema);
+        }
+        catch (EmptyCollectionException error)
+        {
+            var unProblema = new ProblemDetails
+            {
+                Status = StatusCodes.Status404NotFound,
+                Title = "Registro no encontrado con ese Id",
+                Detail = error.Message
+            };
+
+            return StatusCode(StatusCodes.Status404NotFound, unProblema);
+        }
+        catch (ConflictException error)
+        {
+            var unProblema = new ProblemDetails
+            {
+                Status = StatusCodes.Status409Conflict,
+                Title = "Conflicto al procesar la solicitud",
+                Detail = error.Message
+            };
+
+            return StatusCode(StatusCodes.Status409Conflict, unProblema);
         }
         catch (DbOperationException error)
         {

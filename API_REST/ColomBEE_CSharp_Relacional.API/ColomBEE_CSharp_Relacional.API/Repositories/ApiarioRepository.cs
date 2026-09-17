@@ -103,6 +103,28 @@ public class ApiarioRepository(PgsqlDbContext unContexto) : IApiarioRepository
 
         return totalColmenas;
     }
+    
+    public async Task<List<Colmena>> GetAssociatedBeehivesAsync(Guid apiarioId)
+    {
+        var conexion = _contextoDb.CreateConnection();
+
+        DynamicParameters parametrosSentencia = new();
+        parametrosSentencia.Add("@apiarioId", apiarioId,
+            DbType.Guid, ParameterDirection.Input);
+
+        var sentenciaSQL =
+            "SELECT DISTINCT c.id, c.apiario_id ApiarioId, a.nombre ApiarioNombre, " +
+            "c.codigo, to_char(c.fecha_instalacion,'DD/MM/YYYY') FechaInstalacion  " +
+            "FROM core.colmenas c JOIN core.apiarios a ON " +
+            "c.apiario_id = a.id " +
+            "WHERE a.id = @apiarioId";
+
+        var resultadoColmenas = await conexion
+            .QueryAsync<Colmena>(sentenciaSQL, parametrosSentencia);
+        
+
+        return [.. resultadoColmenas];
+    }
 
     public async Task<bool> CreateAsync(Apiario unApiario)
     {
@@ -114,6 +136,38 @@ public class ApiarioRepository(PgsqlDbContext unContexto) : IApiarioRepository
             var procedimiento = "core.p_inserta_apiario";
             var parametros = new
             {
+                p_nombre = unApiario.Nombre,
+                p_latitud = unApiario.Latitud,
+                p_longitud = unApiario.Longitud
+            };
+
+            var cantidad_filas = await conexion.ExecuteAsync(
+                procedimiento,
+                parametros,
+                commandType: CommandType.StoredProcedure);
+
+            if (cantidad_filas != 0)
+                resultadoAccion = true;
+            
+            return resultadoAccion;            
+        }
+        catch (NpgsqlException error)
+        {
+            throw new DbOperationException(error.Message);
+        }
+    }
+    
+    public async Task<bool> UpdateAsync(Apiario unApiario)
+    {
+        try
+        {
+            var resultadoAccion = false;
+            var conexion = _contextoDb.CreateConnection();
+
+            var procedimiento = "core.p_actualiza_apiario";
+            var parametros = new
+            {
+                p_id = unApiario.Id,
                 p_nombre = unApiario.Nombre,
                 p_latitud = unApiario.Latitud,
                 p_longitud = unApiario.Longitud
