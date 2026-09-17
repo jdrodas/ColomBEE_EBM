@@ -16,19 +16,33 @@ namespace ColomBEE_CSharp_Relacional.API.Services
 
         public async Task<List<Sensor>> GetAllAsync()
         {
-            return await _sensorRepository
-                .GetAllAsync();
+            try
+            {
+                return await _sensorRepository 
+                    .GetAllAsync(); 
+            }
+            catch (DbOperationException)
+            {
+                throw;
+            }
         }
-        
+
         public async Task<Sensor> GetByIdAsync(Guid sensorId)
         {
-            Sensor unSensor = await _sensorRepository
-                .GetByIdAsync(sensorId);
+            try
+            {
+                Sensor unSensor = await _sensorRepository
+                    .GetByIdAsync(sensorId);
 
-            if (unSensor.Id == Guid.Empty)
-                throw new EmptyCollectionException($"Sensor no encontrado con el Id {sensorId}");
+                if (unSensor.Id == Guid.Empty)
+                    throw new EmptyCollectionException($"Sensor no encontrado con el Id {sensorId}");
 
-            return unSensor;
+                return unSensor;
+            }
+            catch (DbOperationException)
+            {
+                throw;
+            }
         }
         
         public async Task<Sensor> CreateAsync(Sensor unSensor)
@@ -44,7 +58,7 @@ namespace ColomBEE_CSharp_Relacional.API.Services
                 .GetByIdAsync(unSensor.ColmenaId);
             
             if (colmenaExistente.Id == Guid.Empty)
-                throw new AppValidationException("No existe colmena con Id {unSensor.ColmenaId}");
+                throw new AppValidationException($"No existe colmena con Id {unSensor.ColmenaId}");
 
             unSensor.ColmenaCodigo = colmenaExistente.Codigo;
             
@@ -52,14 +66,14 @@ namespace ColomBEE_CSharp_Relacional.API.Services
                 .GetByIdAsync(unSensor.TipoId);
             
             if (tipoSensorExistente.Id == Guid.Empty)
-                throw new AppValidationException("No existe un tipo de sensor con Id {unSensor.TipoId}");
-            
+                throw new AppValidationException($"No existe un tipo de sensor con Id {unSensor.TipoId}");
             
             var sensorExistente = await _sensorRepository
                 .GetByDetailsAsync(unSensor);
 
             if (sensorExistente.Id != Guid.Empty)
-                return sensorExistente;
+                throw new ConflictException($"No se puede crear el sensor del tipo {tipoSensorExistente.Nombre} " +
+                                            $"porque ya existe con id {sensorExistente.Id}");
             
             try
             {
@@ -80,6 +94,38 @@ namespace ColomBEE_CSharp_Relacional.API.Services
             return sensorExistente;
         }
         
+        public async Task<string> RemoveAsync(Guid sensorId)
+        {
+            var respuesta = "resultado";
+            
+            var sensorExistente = await _sensorRepository
+                .GetByIdAsync(sensorId);
+
+            if (sensorExistente.Id == Guid.Empty)
+                throw new EmptyCollectionException($"No hay un sensor con id {sensorId}");
+
+            var totalLecturasAsociadas = await _sensorRepository
+                .GetTotalAssociatedReadingsAsync(sensorId);
+            
+            if(totalLecturasAsociadas >0)
+                throw new AppValidationException($"El sensor con id {sensorId} tiene {totalLecturasAsociadas} lecturas asociadas. No se puede eliminar");
+            
+            try
+            {
+                var resultado = await _sensorRepository
+                    .RemoveAsync(sensorId);
+                
+                if (resultado)
+                    respuesta = $"Eliminado sensor del tipo {sensorExistente.TipoNombre} con Id {sensorExistente.Id} ha sido eliminado";
+            }
+            catch (DbOperationException)
+            {
+                throw;
+            }
+
+            return respuesta;
+        }
+        
         private static string EvaluateSensorDetailsAsync(Sensor unSensor)
         {
             if(unSensor.FrecuenciaMuestreo <=0)
@@ -95,11 +141,11 @@ namespace ColomBEE_CSharp_Relacional.API.Services
                     out DateTime fechaResultante);
 
             if (!fechaValida)
-                throw new AppValidationException($"La fecha de instalación {unSensor.FechaInstalacion} no tiene el formato DD/MM/YYYY");
+                return $"La fecha de instalación {unSensor.FechaInstalacion} no tiene el formato DD/MM/YYYY";
 
             if (fechaResultante > DateTime.Now)
-                throw new AppValidationException($"No se puede registrar sensores con fecha de instalación futura. " +
-                                                 $"La fecha actual es {DateTime.Now:DD/MM/YYYY}");
+                return $"No se puede registrar sensores con fecha de instalación futura. " +
+                      $"La fecha actual es {DateTime.Now:dd/MM/yyyy} y la proporcionada es {fechaResultante:dd/MM/yyyy}";
             
             return string.Empty;
         }

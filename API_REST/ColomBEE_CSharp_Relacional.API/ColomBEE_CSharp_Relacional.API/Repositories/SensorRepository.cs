@@ -14,46 +14,61 @@ namespace ColomBEE_CSharp_Relacional.API.Repositories
         
         public async Task<List<Sensor>> GetAllAsync()
         {
-            var conexion = _contextoDb.CreateConnection();
+            try
+            {
+                var conexion = _contextoDb.CreateConnection();
 
-            string sentenciaSQL =
-                "SELECT id, tipoId, colmenaId, "+
-                "tipoNombre, colmenaCodigo, " +
-                "frecuenciaMuestreo, " +
-                "fechaInstalacion "+
-                "FROM core.v_info_sensores " +
-                "ORDER BY colmenaCodigo, tipoNombre";
+                string sentenciaSQL =
+                    "SELECT id, tipoId, colmenaId, " +
+                    "tipoNombre, colmenaCodigo, " +
+                    "frecuenciaMuestreo, " +
+                    "fechaInstalacion " +
+                    "FROM core.v_info_sensores " +
+                    "ORDER BY colmenaCodigo, tipoNombre";
 
-            var resultadoSensores = await conexion
-                .QueryAsync<Sensor>(sentenciaSQL, new DynamicParameters());
+                var resultadoSensores = await conexion
+                    .QueryAsync<Sensor>(sentenciaSQL, new DynamicParameters());
 
-            return [.. resultadoSensores];
+                return [.. resultadoSensores];
+            }
+            catch (NpgsqlException error)
+            {
+                throw new DbOperationException(error.Message);
+            }
         }
         
         public async Task<Sensor> GetByIdAsync(Guid sensorId)
         {
-            Sensor unSensor = new();
-            var conexion = _contextoDb.CreateConnection();
+            try
+            {
+                Sensor unSensor = new();
+                var conexion = _contextoDb.CreateConnection();
 
-            DynamicParameters parametrosSentencia = new();
-            parametrosSentencia.Add("@sensorId", sensorId,
-                DbType.Guid, ParameterDirection.Input);
+                DynamicParameters parametrosSentencia = new();
+                parametrosSentencia.Add("@sensorId", sensorId,
+                    DbType.Guid, ParameterDirection.Input);
 
-            string sentenciaSQL =
-                "SELECT id, tipoId, colmenaId, "+
-                "tipoNombre, colmenaCodigo, " +
-                "frecuenciaMuestreo, " +
-                "fechaInstalacion "+
-                "FROM core.v_info_sensores " +
-                "WHERE id = @sensorId";
+                string sentenciaSQL =
+                    "SELECT id, tipoId, colmenaId, "+
+                    "tipoNombre, colmenaCodigo, " +
+                    "frecuenciaMuestreo, " +
+                    "fechaInstalacion "+
+                    "FROM core.v_info_sensores " +
+                    "WHERE id = @sensorId";
 
-            var resultado = await conexion
-                .QueryAsync<Sensor>(sentenciaSQL, parametrosSentencia);
+                var resultado = await conexion
+                    .QueryAsync<Sensor>(sentenciaSQL, parametrosSentencia);
 
-            if (resultado.Any())
-                unSensor = resultado.First();
+                if (resultado.Any())
+                    unSensor = resultado.First();
 
-            return unSensor;
+                return unSensor;
+            }
+            catch (NpgsqlException error)
+            {
+                throw new DbOperationException(error.Message);
+            }
+
         }
         
         public async Task<Sensor> GetByDetailsAsync(Sensor unSensor)
@@ -68,8 +83,6 @@ namespace ColomBEE_CSharp_Relacional.API.Repositories
                 DbType.Guid, ParameterDirection.Input);
             parametrosSentencia.Add("@fechaInstalacion", unSensor.FechaInstalacion!,
                 DbType.String, ParameterDirection.Input);
-            parametrosSentencia.Add("@frecuenciaMuestreo", unSensor.FrecuenciaMuestreo,
-                DbType.Int32, ParameterDirection.Input);
             
             string sentenciaSQL =
                 "SELECT id, tipoId, colmenaId, "+
@@ -79,7 +92,6 @@ namespace ColomBEE_CSharp_Relacional.API.Repositories
                 "FROM core.v_info_sensores " +
                 "WHERE tipoId = @tipoId " +
                 "AND colmenaId = @colmenaId " +
-                "AND frecuenciaMuestreo = @frecuenciaMuestreo " +
                 "AND fechaInstalacion = @fechaInstalacion";
 
             var resultado = await conexion
@@ -91,37 +103,83 @@ namespace ColomBEE_CSharp_Relacional.API.Repositories
             return sensorEncontrado;
         }    
         
+        public async Task<long> GetTotalAssociatedReadingsAsync(Guid sensorId)
+        {
+            var conexion = _contextoDb.CreateConnection();
+            
+            DynamicParameters parametrosSentencia = new();
+            parametrosSentencia.Add("@sensorId", sensorId,
+                DbType.Guid, ParameterDirection.Input);
+            
+            var sentenciaSql =
+                "SELECT COUNT(id) total FROM core.lecturas " +
+                "WHERE sensor_id = @sensorId";
+
+            var totalLecturas = await conexion
+                .QueryFirstAsync<long>(sentenciaSql, parametrosSentencia);
+
+            return totalLecturas;
+        }
+        
         public async Task<bool> CreateAsync(Sensor unSensor)
+        {
+            try
+            {
+                bool resultadoAccion = false;
+                var conexion = _contextoDb.CreateConnection();
+
+                string procedimiento = "core.p_inserta_sensor";
+                var parametros = new
                 {
-                    bool resultadoAccion = false;
+                    p_colmena_id = unSensor.ColmenaId,
+                    p_tipo_id = unSensor.TipoId,
+                    p_frecuencia_muestreo = unSensor.FrecuenciaMuestreo,
+                    p_fecha_instalacion = unSensor.FechaInstalacion
+                };
+
+                var cantidad_filas = await conexion.ExecuteAsync(
+                    procedimiento,
+                    parametros,
+                    commandType: CommandType.StoredProcedure);
+
+                if (cantidad_filas != 0)
+                    resultadoAccion = true;
+                
+                return resultadoAccion;
+            }
+            catch (NpgsqlException error)
+            {
+                throw new DbOperationException(error.Message);
+            }
+        }
         
-                    try
-                    {
-                        var conexion = _contextoDb.CreateConnection();
-        
-                        string procedimiento = "core.p_inserta_sensor";
-                        var parametros = new
-                        {
-                            p_colmena_id = unSensor.ColmenaId,
-                            p_tipo_id = unSensor.TipoId,
-                            p_frecuencia_muestreo = unSensor.FrecuenciaMuestreo,
-                            p_fecha_instalacion = unSensor.FechaInstalacion
-                        };
-        
-                        var cantidad_filas = await conexion.ExecuteAsync(
-                            procedimiento,
-                            parametros,
-                            commandType: CommandType.StoredProcedure);
-        
-                        if (cantidad_filas != 0)
-                            resultadoAccion = true;
-                    }
-                    catch (NpgsqlException error)
-                    {
-                        throw new DbOperationException(error.Message);
-                    }
-        
-                    return resultadoAccion;
-                }
+        public async Task<bool> RemoveAsync(Guid sensorId)
+        {
+            try
+            {
+                bool resultadoAccion = false;
+                var conexion = _contextoDb.CreateConnection();
+
+                string procedimiento = "core.p_elimina_sensor";
+                var parametros = new
+                {
+                    p_id = sensorId
+                };
+
+                var cantidad_filas = await conexion.ExecuteAsync(
+                    procedimiento,
+                    parametros,
+                    commandType: CommandType.StoredProcedure);
+
+                if (cantidad_filas != 0)
+                    resultadoAccion = true;
+                
+                return resultadoAccion;
+            }
+            catch (NpgsqlException error)
+            {
+                throw new DbOperationException(error.Message);
+            }
+        }
     }
 }

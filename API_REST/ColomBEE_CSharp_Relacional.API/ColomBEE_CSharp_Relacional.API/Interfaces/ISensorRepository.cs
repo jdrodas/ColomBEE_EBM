@@ -7,6 +7,8 @@ namespace ColomBEE_CSharp_Relacional.API.Interfaces
         public Task<List<Sensor>> GetAllAsync();
         public Task<Sensor> GetByIdAsync(Guid sensorId);
         public Task<Sensor> GetByDetailsAsync(Sensor unSensor);
+        public Task<long> GetTotalAssociatedReadingsAsync(Guid sensorId);
         public Task<bool> CreateAsync(Sensor unSensor);
+        public Task<bool> RemoveAsync(Guid sensorId);
     }
 }

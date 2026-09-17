@@ -114,7 +114,7 @@ namespace ColomBEE_CSharp_Relacional.API.Controllers.V1
         }
         
         [HttpDelete("{apiarioId:Guid}")]
-        [ProducesResponseType(typeof(Apiario), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(RespuestaApi), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
@@ -125,7 +125,13 @@ namespace ColomBEE_CSharp_Relacional.API.Controllers.V1
                 var apiarioEliminado = await _apiarioService
                     .RemoveAsync(apiarioId);
 
-                return Ok(apiarioEliminado);
+                var unaRespuesta = new RespuestaApi
+                {
+                    StatusCode = 200,
+                    Mensaje = apiarioEliminado
+                };
+
+                return Ok(unaRespuesta);
             }
             catch (EmptyCollectionException error)
             {

@@ -138,7 +138,13 @@ namespace ColomBEE_CSharp_Relacional.API.Controllers.V1
                 var tipoSensorEliminado = await _tipoSensorService
                     .RemoveAsync(tipoSensorId);
 
-                return Ok(tipoSensorEliminado);
+                var unaRespuesta = new RespuestaApi
+                {
+                    StatusCode = 200,
+                    Mensaje = tipoSensorEliminado
+                };
+
+                return Ok(unaRespuesta);
             }
             catch (AppValidationException error)
             {
