@@ -75,6 +75,43 @@ public class TiposSensoresController(TipoSensorService tipoSensorService) : Cont
             return StatusCode(StatusCodes.Status500InternalServerError, unProblema);
         }
     }
+    
+    [HttpGet("{tipoSensorId:Guid}/sensores")]
+    [ProducesResponseType(typeof(List<Sensor>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetAssociatedSensorsAsync(Guid tipoSensorId)
+    {
+        try
+        {
+            var losSensoresAsociados = await _tipoSensorService
+                .GetAssociatedSensorsAsync(tipoSensorId);
+
+            return Ok(losSensoresAsociados);
+        }
+        catch (EmptyCollectionException error)
+        {
+            var unProblema = new ProblemDetails
+            {
+                Status = StatusCodes.Status404NotFound,
+                Title = "Petición sin resultados",
+                Detail = error.Message
+            };
+
+            return StatusCode(StatusCodes.Status404NotFound, unProblema);
+        }
+        catch (DbOperationException error)
+        {
+            var unProblema = new ProblemDetails
+            {
+                Status = StatusCodes.Status500InternalServerError,
+                Title = "Error en bases de datos",
+                Detail = error.Message
+            };
+
+            return StatusCode(StatusCodes.Status500InternalServerError, unProblema);
+        }
+    }
 
     [HttpPost]
     [ProducesResponseType(typeof(TipoSensor), StatusCodes.Status201Created)]
@@ -124,9 +161,70 @@ public class TiposSensoresController(TipoSensorService tipoSensorService) : Cont
             return StatusCode(StatusCodes.Status500InternalServerError, unProblema);
         }
     }
+    
+    [HttpPut]
+    [ProducesResponseType(typeof(TipoSensor), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UpdateAsync(TipoSensor unTipoSensor)
+    {
+        try
+        {
+            var tipoSensorActualizado = await _tipoSensorService
+                .UpdateAsync(unTipoSensor);
+
+            return StatusCode(StatusCodes.Status200OK, tipoSensorActualizado);
+        }
+        catch (AppValidationException error)
+        {
+            var unProblema = new ProblemDetails
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Error en aplicación al procesar solicitud",
+                Detail = error.Message
+            };
+
+            return StatusCode(StatusCodes.Status400BadRequest, unProblema);
+        }
+        catch (EmptyCollectionException error)
+        {
+            var unProblema = new ProblemDetails
+            {
+                Status = StatusCodes.Status404NotFound,
+                Title = "Registro no encontrado con ese Id",
+                Detail = error.Message
+            };
+
+            return StatusCode(StatusCodes.Status404NotFound, unProblema);
+        }
+        catch (ConflictException error)
+        {
+            var unProblema = new ProblemDetails
+            {
+                Status = StatusCodes.Status409Conflict,
+                Title = "Conflicto al procesar la solicitud",
+                Detail = error.Message
+            };
+
+            return StatusCode(StatusCodes.Status409Conflict, unProblema);
+        }
+        catch (DbOperationException error)
+        {
+            var unProblema = new ProblemDetails
+            {
+                Status = StatusCodes.Status500InternalServerError,
+                Title = "Error en bases de datos",
+                Detail = error.Message
+            };
+
+            return StatusCode(StatusCodes.Status500InternalServerError, unProblema);
+        }
+    }
 
     [HttpDelete("{tipoSensorId:Guid}")]
-    [ProducesResponseType(typeof(TipoSensor), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(RespuestaApi), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]

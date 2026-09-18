@@ -107,6 +107,29 @@ public class TipoSensorRepository(PgsqlDbContext unContexto) : ITipoSensorReposi
 
         return totalSensores;
     }
+    
+    public async Task<List<Sensor>> GetAssociatedSensorsAsync(Guid tipoSensorId)
+    {
+        var conexion = _contextoDb.CreateConnection();
+
+        DynamicParameters parametrosSentencia = new();
+        parametrosSentencia.Add("@tipoSensorId", tipoSensorId,
+            DbType.Guid, ParameterDirection.Input);
+
+        var sentenciaSQL =
+            "SELECT id, tipoId, colmenaId, " +
+            "tipoNombre, colmenaCodigo, " +
+            "frecuenciaMuestreo, " +
+            "fechaInstalacion " +
+            "FROM core.v_info_sensores " +
+            "WHERE tipoId = @tipoSensorId";
+
+        var resultadoSensores = await conexion
+            .QueryAsync<Sensor>(sentenciaSQL, parametrosSentencia);
+        
+
+        return [.. resultadoSensores];
+    }
 
     public async Task<bool> CreateAsync(TipoSensor unTipoSensor)
     {
@@ -118,6 +141,37 @@ public class TipoSensorRepository(PgsqlDbContext unContexto) : ITipoSensorReposi
             var procedimiento = "core.p_inserta_tipo_sensor";
             var parametros = new
             {
+                p_nombre = unTipoSensor.Nombre,
+                p_unidad_medida = unTipoSensor.UnidadMedida
+            };
+
+            var cantidad_filas = await conexion.ExecuteAsync(
+                procedimiento,
+                parametros,
+                commandType: CommandType.StoredProcedure);
+
+            if (cantidad_filas != 0)
+                resultadoAccion = true;
+            
+            return resultadoAccion;            
+        }
+        catch (NpgsqlException error)
+        {
+            throw new DbOperationException(error.Message);
+        }
+    }
+    
+    public async Task<bool> UpdateAsync(TipoSensor unTipoSensor)
+    {
+        try
+        {
+            var resultadoAccion = false;
+            var conexion = _contextoDb.CreateConnection();
+
+            var procedimiento = "core.p_actualiza_tipo_sensor";
+            var parametros = new
+            {
+                p_id = unTipoSensor.Id,
                 p_nombre = unTipoSensor.Nombre,
                 p_unidad_medida = unTipoSensor.UnidadMedida
             };
