@@ -432,7 +432,7 @@ create or replace procedure core.p_actualiza_sensor(
                             in p_colmena_id             uuid,
                             in p_tipo_id                uuid,
                             in p_frecuencia_muestreo    integer,
-                            in p_fecha_instalacion      date)
+                            in p_fecha_instalacion      varchar)
 language plpgsql as
 $$
     declare
@@ -448,7 +448,7 @@ $$
         end if;
 
         if p_fecha_instalacion is null or
-            p_fecha_instalacion > current_date then
+            to_date(p_fecha_instalacion,'DD/MM/YYYY') > current_date then
                 raise exception 'El dato de la fecha de instalación es nulo o inválido';
         end if;
 
@@ -484,7 +484,7 @@ $$
         where colmena_id = p_colmena_id
         and tipo_id = p_tipo_id
         and frecuencia_muestreo = p_frecuencia_muestreo
-        and fecha_instalacion = p_fecha_instalacion;
+        and fecha_instalacion = to_date(p_fecha_instalacion,'DD/MM/YYYY')   ;
 
         if l_total_registros != 0  then
             raise exception 'ya existe ese sensor registrado asociado a esa colmena, tipo de sensor, freceuncia de muestreo y fecha de instalación';
@@ -494,7 +494,7 @@ $$
         set colmena_id = p_colmena_id,
             tipo_id = p_tipo_id,
             frecuencia_muestreo = p_frecuencia_muestreo,
-            fecha_instalacion = p_fecha_instalacion
+            fecha_instalacion = to_date(p_fecha_instalacion,'DD/MM/YYYY')
         where id = p_id;
     end;
 $$;

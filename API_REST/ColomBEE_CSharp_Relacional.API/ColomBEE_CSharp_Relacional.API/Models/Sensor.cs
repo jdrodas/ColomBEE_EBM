@@ -27,8 +27,7 @@ public class Sensor
 
         var otroSensor = (Sensor)obj;
 
-        return Id == otroSensor.Id
-               && TipoId == otroSensor.TipoId
+        return TipoId == otroSensor.TipoId
                && ColmenaId == otroSensor.ColmenaId
                && FrecuenciaMuestreo == otroSensor.FrecuenciaMuestreo
                && FechaInstalacion == otroSensor.FechaInstalacion;

@@ -8,6 +8,8 @@ public interface ISensorRepository
     public Task<Sensor> GetByIdAsync(Guid sensorId);
     public Task<Sensor> GetByDetailsAsync(Sensor unSensor);
     public Task<long> GetTotalAssociatedReadingsAsync(Guid sensorId);
+    public Task<List<Lectura>> GetAssociatedReadingsAsync(Guid sensorId);
     public Task<bool> CreateAsync(Sensor unSensor);
+    public Task<bool> UpdateAsync(Sensor unSensor);
     public Task<bool> RemoveAsync(Guid sensorId);
 }

@@ -119,6 +119,25 @@ public class SensorRepository(PgsqlDbContext unContexto) : ISensorRepository
 
         return totalLecturas;
     }
+    
+    public async Task<List<Lectura>> GetAssociatedReadingsAsync(Guid sensorId)
+    {
+        var conexion = _contextoDb.CreateConnection();
+
+        DynamicParameters parametrosSentencia = new();
+        parametrosSentencia.Add("@sensorId", sensorId,
+            DbType.Guid, ParameterDirection.Input);
+
+        var sentenciaSQL =
+            "SELECT DISTINCT id, sensor_id sensorId, fecha_registro fechaRegistro, valor " +
+            "FROM core.lecturas " +
+            "WHERE sensor_id = @sensorId";
+            
+        var resultadoLecturas = await conexion
+            .QueryAsync<Lectura>(sentenciaSQL, parametrosSentencia);
+        
+        return [.. resultadoLecturas];
+    }
 
     public async Task<bool> CreateAsync(Sensor unSensor)
     {
@@ -145,6 +164,39 @@ public class SensorRepository(PgsqlDbContext unContexto) : ISensorRepository
                 resultadoAccion = true;
 
             return resultadoAccion;
+        }
+        catch (NpgsqlException error)
+        {
+            throw new DbOperationException(error.Message);
+        }
+    }
+    
+    public async Task<bool> UpdateAsync(Sensor unSensor)
+    {
+        try
+        {
+            var resultadoAccion = false;
+            var conexion = _contextoDb.CreateConnection();
+
+            var procedimiento = "core.p_actualiza_sensor";
+            var parametros = new
+            {
+                p_id = unSensor.Id,
+                p_colmena_id = unSensor.ColmenaId,
+                p_tipo_id = unSensor.TipoId,
+                p_frecuencia_muestreo = unSensor.FrecuenciaMuestreo,
+                p_fecha_instalacion = unSensor.FechaInstalacion
+            };
+
+            var cantidad_filas = await conexion.ExecuteAsync(
+                procedimiento,
+                parametros,
+                commandType: CommandType.StoredProcedure);
+
+            if (cantidad_filas != 0)
+                resultadoAccion = true;
+            
+            return resultadoAccion;            
         }
         catch (NpgsqlException error)
         {

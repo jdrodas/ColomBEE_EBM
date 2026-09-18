@@ -75,6 +75,43 @@ public class SensoresController(SensorService sensorService) : Controller
             return StatusCode(StatusCodes.Status500InternalServerError, unProblema);
         }
     }
+    
+    [HttpGet("{sensorId:Guid}/lecturas")]
+    [ProducesResponseType(typeof(List<Lectura>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetAssociatedReadingsAsync(Guid sensorId)
+    {
+        try
+        {
+            var lasLecturasAsociadas = await _sensorService
+                .GetAssociatedReadingsAsync(sensorId);
+
+            return Ok(lasLecturasAsociadas);
+        }
+        catch (EmptyCollectionException error)
+        {
+            var unProblema = new ProblemDetails
+            {
+                Status = StatusCodes.Status404NotFound,
+                Title = "Petición sin resultados",
+                Detail = error.Message
+            };
+
+            return StatusCode(StatusCodes.Status404NotFound, unProblema);
+        }
+        catch (DbOperationException error)
+        {
+            var unProblema = new ProblemDetails
+            {
+                Status = StatusCodes.Status500InternalServerError,
+                Title = "Error en bases de datos",
+                Detail = error.Message
+            };
+
+            return StatusCode(StatusCodes.Status500InternalServerError, unProblema);
+        }
+    }
 
     [HttpPost]
     [ProducesResponseType(typeof(Sensor), StatusCodes.Status201Created)]
@@ -100,6 +137,67 @@ public class SensoresController(SensorService sensorService) : Controller
             };
 
             return StatusCode(StatusCodes.Status400BadRequest, unProblema);
+        }
+        catch (ConflictException error)
+        {
+            var unProblema = new ProblemDetails
+            {
+                Status = StatusCodes.Status409Conflict,
+                Title = "Conflicto al procesar la solicitud",
+                Detail = error.Message
+            };
+
+            return StatusCode(StatusCodes.Status409Conflict, unProblema);
+        }
+        catch (DbOperationException error)
+        {
+            var unProblema = new ProblemDetails
+            {
+                Status = StatusCodes.Status500InternalServerError,
+                Title = "Error en bases de datos",
+                Detail = error.Message
+            };
+
+            return StatusCode(StatusCodes.Status500InternalServerError, unProblema);
+        }
+    }
+    
+        [HttpPut]
+    [ProducesResponseType(typeof(Sensor), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UpdateAsync(Sensor unSensor)
+    {
+        try
+        {
+            var sensorActualizado = await _sensorService
+                .UpdateAsync(unSensor);
+
+            return StatusCode(StatusCodes.Status200OK, sensorActualizado);
+        }
+        catch (AppValidationException error)
+        {
+            var unProblema = new ProblemDetails
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Error en aplicación al procesar solicitud",
+                Detail = error.Message
+            };
+
+            return StatusCode(StatusCodes.Status400BadRequest, unProblema);
+        }
+        catch (EmptyCollectionException error)
+        {
+            var unProblema = new ProblemDetails
+            {
+                Status = StatusCodes.Status404NotFound,
+                Title = "Registro no encontrado con ese Id",
+                Detail = error.Message
+            };
+
+            return StatusCode(StatusCodes.Status404NotFound, unProblema);
         }
         catch (ConflictException error)
         {
