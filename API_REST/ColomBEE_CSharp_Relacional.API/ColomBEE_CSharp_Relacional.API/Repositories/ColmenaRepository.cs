@@ -91,6 +91,24 @@ public class ColmenaRepository(PgsqlDbContext unContexto) : IColmenaRepository
         return colmenaEncontrada;
     }
 
+    public async Task<long> GetTotalAssociatedSensorsAsync(Guid colmenaId)
+    {
+        var conexion = _contextoDb.CreateConnection();
+
+        DynamicParameters parametrosSentencia = new();
+        parametrosSentencia.Add("@colmenaId", colmenaId,
+            DbType.Guid, ParameterDirection.Input);
+
+        var sentenciaSql =
+            "SELECT COUNT(id) total FROM core.sensores " +
+            "WHERE colmena_id = @colmenaId";
+
+        var totalSensores = await conexion
+            .QueryFirstAsync<long>(sentenciaSql, parametrosSentencia);
+
+        return totalSensores;
+    }
+    
     public async Task<bool> CreateAsync(Colmena unaColmena)
     {
         try
@@ -104,6 +122,67 @@ public class ColmenaRepository(PgsqlDbContext unContexto) : IColmenaRepository
                 p_codigo = unaColmena.Codigo,
                 p_apiario_id = unaColmena.ApiarioId,
                 p_fecha_instalacion = unaColmena.FechaInstalacion
+            };
+
+            var cantidad_filas = await conexion.ExecuteAsync(
+                procedimiento,
+                parametros,
+                commandType: CommandType.StoredProcedure);
+
+            if (cantidad_filas != 0)
+                resultadoAccion = true;
+            
+            return resultadoAccion;
+        }
+        catch (NpgsqlException error)
+        {
+            throw new DbOperationException(error.Message);
+        }
+    }
+    
+    public async Task<bool> UpdateAsync(Colmena unaColmena)
+    {
+        try
+        {
+            var resultadoAccion = false;
+            var conexion = _contextoDb.CreateConnection();
+
+            var procedimiento = "core.p_actualiza_colmena";
+            var parametros = new
+            {
+                p_id = unaColmena.Id,
+                p_codigo = unaColmena.Codigo,
+                p_apiario_id = unaColmena.ApiarioId,
+                p_fecha_instalacion = unaColmena.FechaInstalacion
+            };
+
+            var cantidad_filas = await conexion.ExecuteAsync(
+                procedimiento,
+                parametros,
+                commandType: CommandType.StoredProcedure);
+
+            if (cantidad_filas != 0)
+                resultadoAccion = true;
+            
+            return resultadoAccion;            
+        }
+        catch (NpgsqlException error)
+        {
+            throw new DbOperationException(error.Message);
+        }
+    }
+    
+    public async Task<bool> RemoveAsync(Guid colmenaId)
+    {
+        try
+        {
+            var resultadoAccion = false;
+            var conexion = _contextoDb.CreateConnection();
+
+            var procedimiento = "core.p_elimina_colmena";
+            var parametros = new
+            {
+                p_id = colmenaId
             };
 
             var cantidad_filas = await conexion.ExecuteAsync(

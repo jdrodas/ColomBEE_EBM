@@ -93,7 +93,7 @@ public class ApiariosController(ApiarioService apiarioService) : Controller
             var unProblema = new ProblemDetails
             {
                 Status = StatusCodes.Status404NotFound,
-                Title = "Registro no encontrado con ese Id",
+                Title = "Apiario sin colmenas asociadas",
                 Detail = error.Message
             };
 

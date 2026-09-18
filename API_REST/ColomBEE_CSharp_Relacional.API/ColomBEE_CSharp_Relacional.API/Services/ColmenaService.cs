@@ -65,6 +65,80 @@ public class ColmenaService(
 
         return colmenaExistente;
     }
+    
+    public async Task<Colmena> UpdateAsync(Colmena unaColmena)
+    {
+        unaColmena.Codigo = unaColmena.Codigo!.Trim();
+        unaColmena.FechaInstalacion = unaColmena.FechaInstalacion!.Trim();
+
+        var resultadoValidacion = EvaluateBeehiveDetailsAsync(unaColmena);
+
+        if (!string.IsNullOrEmpty(resultadoValidacion))
+            throw new AppValidationException(resultadoValidacion);
+        
+        var apiarioExistente = await _apiarioRepository
+            .GetByIdAsync(unaColmena.ApiarioId);
+
+        if (apiarioExistente.Id == Guid.Empty)
+            throw new AppValidationException($"No existe apiario con Id {unaColmena.ApiarioId}");
+
+        unaColmena.ApiarioNombre = apiarioExistente.Nombre;
+
+        var colmenaExistente = await _colmenaRepository
+            .GetByIdAsync(unaColmena.Id);
+        
+        if(colmenaExistente.Id == Guid.Empty)
+            throw new EmptyCollectionException($"No existe una colmena con Id: {unaColmena.Id} " +
+                                               $"que se pueda actualizar");
+        
+        colmenaExistente = await _colmenaRepository
+            .GetByDetailsAsync(unaColmena);
+
+        if (colmenaExistente.Codigo!.ToLower().Equals(unaColmena.Codigo!.ToLower()) &&
+            colmenaExistente.ApiarioId == unaColmena.ApiarioId &&
+            colmenaExistente.FechaInstalacion == unaColmena.FechaInstalacion)
+            throw new ConflictException($"No se puede actualizar la Colmena {unaColmena.Codigo} " +
+                                        $"porque ya existe con id {colmenaExistente.Id}");
+
+        var resultadoAccion = await _colmenaRepository
+            .UpdateAsync(unaColmena);
+
+        if (!resultadoAccion)
+            throw new AppValidationException("Operación ejecutada pero no generó cambios en la DB");
+
+        colmenaExistente = await _colmenaRepository
+            .GetByDetailsAsync(unaColmena);
+
+        return colmenaExistente;
+    }
+    
+    public async Task<string> RemoveAsync(Guid colmenaId)
+    {
+        var respuesta = "resultado";
+
+        var colmenaExistente = await _colmenaRepository
+            .GetByIdAsync(colmenaId);
+
+        if (colmenaExistente.Id == Guid.Empty)
+            throw new EmptyCollectionException($"No hay una colmena con id {colmenaId}");
+
+        var totalSensoresAsociados = await _colmenaRepository
+            .GetTotalAssociatedSensorsAsync(colmenaId);
+
+        if (totalSensoresAsociados > 0)
+            throw new AppValidationException(
+                $"La colmena con id {colmenaId} tiene {totalSensoresAsociados} sensores asociados. " +
+                $"No se puede eliminar");
+
+        var resultado = await _colmenaRepository
+            .RemoveAsync(colmenaId);
+
+        if (resultado)
+            respuesta = $"Eliminada la colmena {colmenaExistente.Codigo} " +
+                        $"asociada al apiario {colmenaExistente.ApiarioNombre}.";
+
+        return respuesta;
+    }
 
     private static string EvaluateBeehiveDetailsAsync(Colmena unaColmena)
     {

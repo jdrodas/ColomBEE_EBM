@@ -178,7 +178,7 @@ create or replace procedure core.p_actualiza_colmena(
                             in p_id                  uuid,
                             in p_codigo              varchar,
                             in p_apiario_id          uuid,
-                            in p_fecha_instalacion   date)
+                            in p_fecha_instalacion   varchar)
 language plpgsql as
 $$
     declare
@@ -204,7 +204,7 @@ $$
         from core.colmenas
         where upper(p_codigo) = upper(codigo)
         and p_apiario_id = apiario_id
-        and p_fecha_instalacion = fecha_instalacion;
+        and to_date(p_fecha_instalacion,'DD/MM/YYYY') = fecha_instalacion;
 
         if l_total_registros != 0  then
             raise exception 'ya existe esa colmena registrada con ese codigo, apiario y fecha de instalación.';
@@ -214,7 +214,7 @@ $$
         set
             codigo = initcap(p_codigo),
             apiario_id = p_apiario_id,
-            fecha_instalacion = p_fecha_instalacion
+            fecha_instalacion = to_date(p_fecha_instalacion,'DD/MM/YYYY')
         where id = p_id;
     end;
 $$;
