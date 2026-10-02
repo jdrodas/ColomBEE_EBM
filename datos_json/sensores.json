@@ -1,0 +1,30 @@
+[
+  {
+    "sensor_id": "01a06da1-dded-7055-b461-d4f0c0dd3091",
+    "colmena_id": "01a04906-234e-79f4-aeba-c921bc45c2d0",
+    "tipo_sensor_id": "01a048f5-f5d7-7465-b8a9-6fe194dc768f",
+    "frecuencia_muestreo": 15,
+    "fecha_instalacion": "2026-09-04"
+  },
+  {
+    "sensor_id": "01a08745-0afa-770e-947a-b573e11996c1",
+    "colmena_id": "01a04906-234e-79f4-aeba-c921bc45c2d0",
+    "tipo_sensor_id": "01a03f4a-6833-7c58-b22f-04393789e4ce",
+    "frecuencia_muestreo": 15,
+    "fecha_instalacion": "2026-09-09"
+  },
+  {
+    "sensor_id": "01a0ab6c-8724-74a9-aca9-cb01304181f8",
+    "colmena_id": "01a0aa9e-061b-791f-b488-3f8696e0e30b",
+    "tipo_sensor_id": "01a0444c-ca26-7e6e-9ded-02082c3bea5d",
+    "frecuencia_muestreo": 15,
+    "fecha_instalacion": "2026-08-16"
+  },
+  {
+    "sensor_id": "01a08745-d1ac-77ea-bd89-416f7b2969e0",
+    "colmena_id": "01a04906-234e-79f4-aeba-c921bc45c2d0",
+    "tipo_sensor_id": "01a0488c-cad8-7263-8761-67d8ae30d521",
+    "frecuencia_muestreo": 13,
+    "fecha_instalacion": "2026-09-08"
+  }
+]

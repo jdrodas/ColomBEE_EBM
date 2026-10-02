@@ -1,0 +1,38 @@
+[
+  {
+    "colmena_id": "01a04906-234e-79f4-aeba-c921bc45c2d0",
+    "apiario_id": "01a048b2-484c-79b6-a6fb-af8d75b1baa1",
+    "colmena_codigo": "Beehive-01",
+    "fecha_instalacion": "2026-08-27"
+  },
+  {
+    "colmena_id": "01a04968-4987-7729-ae44-6cd4f36dcdf2",
+    "apiario_id": "01a04965-80d9-74e0-a581-06929b477973",
+    "colmena_codigo": "Colven01",
+    "fecha_instalacion": "2026-08-28"
+  },
+  {
+    "colmena_id": "01a0496a-aea0-7103-8a30-0239af59cf84",
+    "apiario_id": "01a04965-80d9-74e0-a581-06929b477973",
+    "colmena_codigo": "Colven02",
+    "fecha_instalacion": "2026-08-27"
+  },
+  {
+    "colmena_id": "01a0aa9c-7992-754e-97ba-51531963c9cc",
+    "apiario_id": "01a048b2-484c-79b6-a6fb-af8d75b1baa1",
+    "colmena_codigo": "Colbragre02",
+    "fecha_instalacion": "2026-08-16"
+  },
+  {
+    "colmena_id": "01a0aa9e-061b-791f-b488-3f8696e0e30b",
+    "apiario_id": "01a048b2-484c-79b6-a6fb-af8d75b1baa1",
+    "colmena_codigo": "Colbagre03",
+    "fecha_instalacion": "2026-08-16"
+  },
+  {
+    "colmena_id": "01a0b4d6-9e76-788b-b9f4-9443cf9c0da0",
+    "apiario_id": "01a08dae-c5b6-73e6-a613-20b83922afc6",
+    "colmena_codigo": "Palocol01ant",
+    "fecha_instalacion": "2026-09-15"
+  }
+]

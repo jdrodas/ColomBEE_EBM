@@ -1,0 +1,32 @@
+[
+  {
+    "tipo_sensor_id": "01a03f4a-6833-7c58-b22f-04393789e4ce",
+    "nombre": "Temperatura",
+    "unidad_medida": "Grados Centigrados"
+  },
+  {
+    "tipo_sensor_id": "01a0444c-ca26-7e6e-9ded-02082c3bea5d",
+    "nombre": "Sonido",
+    "unidad_medida": "Decibeles"
+  },
+  {
+    "tipo_sensor_id": "01a03f4b-6407-7c07-b73c-571fc91bebdb",
+    "nombre": "Peso",
+    "unidad_medida": "Libras"
+  },
+  {
+    "tipo_sensor_id": "01a0488c-cad8-7263-8761-67d8ae30d521",
+    "nombre": "Humedad",
+    "unidad_medida": "% Humedad"
+  },
+  {
+    "tipo_sensor_id": "01a048f5-f5d7-7465-b8a9-6fe194dc768f",
+    "nombre": "Luz",
+    "unidad_medida": "Candela"
+  },
+  {
+    "tipo_sensor_id": "01a0b52c-fdc3-7d1e-bb6e-e61fe1b94697",
+    "nombre": "Presión Atmosférica",
+    "unidad_medida": "Pascal Solo"
+  }
+]

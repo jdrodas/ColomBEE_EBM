@@ -1,0 +1,32 @@
+[
+  {
+    "apiario_id": "01a048b2-484c-79b6-a6fb-af8d75b1baa1",
+    "nombre": "El Bagre - Zaragoza",
+    "latitud": 7.583,
+    "longitud": -74.813
+  },
+  {
+    "apiario_id": "01a04965-80d9-74e0-a581-06929b477973",
+    "nombre": "Venecia - Parque Principal",
+    "latitud": 5.960833,
+    "longitud": -75.733611
+  },
+  {
+    "apiario_id": "01a08dae-c5b6-73e6-a613-20b83922afc6",
+    "nombre": "Palocabildo",
+    "latitud": 5.12,
+    "longitud": -75.023611
+  },
+  {
+    "apiario_id": "01a090a0-69b2-7792-a214-1a03c44fd215",
+    "nombre": "Apiario Caldono",
+    "latitud": 2.796944,
+    "longitud": -76.482778
+  },
+  {
+    "apiario_id": "01a0b05e-267c-72a1-aabd-97a1723d2844",
+    "nombre": "Apiario Málaga Parque Principal",
+    "latitud": 6.699445,
+    "longitud": -72.732776
+  }
+]
