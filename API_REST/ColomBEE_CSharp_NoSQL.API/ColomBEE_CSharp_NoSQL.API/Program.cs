@@ -20,12 +20,14 @@ builder.Services.AddSingleton<MongoDbContext>();
 // ***************************************************************************
 
 builder.Services.AddScoped<IEstadisticaRepository, EstadisticaRepository>();
+builder.Services.AddScoped<IApiarioRepository, ApiarioRepository>();
 
 // ***************************************************************************
 // --- Configuraci�n de los servicios asociados  --
 // ***************************************************************************
 
 builder.Services.AddScoped<EstadisticaService>();
+builder.Services.AddScoped<ApiarioService>();
 
 // Add services to the container.
 builder.Services.AddControllers()
