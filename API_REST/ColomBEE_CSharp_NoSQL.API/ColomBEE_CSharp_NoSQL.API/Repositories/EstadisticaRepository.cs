@@ -30,6 +30,14 @@ public class EstadisticaRepository(MongoDbContext unContexto) : IEstadisticaRepo
             .EstimatedDocumentCountAsync();
 
         unaEstadistica.TiposSensores = totalTiposSensores;
+        
+        var coleccionColmenas = conexion
+            .GetCollection<Colmena>(contextoDB.ConfiguracionColecciones.ColeccionColmenas);
+
+        var totalColmenas = await coleccionColmenas
+            .EstimatedDocumentCountAsync();
+
+        unaEstadistica.Colmenas = totalColmenas;
 
         return unaEstadistica;
     }

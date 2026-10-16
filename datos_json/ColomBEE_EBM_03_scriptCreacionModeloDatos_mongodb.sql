@@ -45,6 +45,18 @@ db.colmenas.find().forEach(function(unaColmena){
     }
 });
 
+-- Actualizar el nombre del apiario en colección de colmenas
+db.colmenas.find().forEach(function(unaColmena){
+    let unApiario = db.apiarios.findOne({"_id":unaColmena.apiario_objectId});
+
+    if(unApiario){
+        db.colmenas.updateOne(
+            {_id:unaColmena._id},
+            {$set:{"apiario_nombre": unApiario.nombre}}
+        );
+    }
+});
+
 -- Actualizar el ObjectId de tipo de sensor en colección de sensores
 db.sensores.find().forEach(function(unSensor){
     let unTipoSensor = db.tipos_sensores.findOne({"tipo_sensor_id":unSensor.tipo_sensor_id});
