@@ -22,6 +22,7 @@ builder.Services.AddSingleton<MongoDbContext>();
 builder.Services.AddScoped<IEstadisticaRepository, EstadisticaRepository>();
 builder.Services.AddScoped<IApiarioRepository, ApiarioRepository>();
 builder.Services.AddScoped<IColmenaRepository, ColmenaRepository>();
+builder.Services.AddScoped<ITipoSensorRepository, TipoSensorRepository>();
 
 // ***************************************************************************
 // --- Configuraci�n de los servicios asociados  --
@@ -30,6 +31,7 @@ builder.Services.AddScoped<IColmenaRepository, ColmenaRepository>();
 builder.Services.AddScoped<EstadisticaService>();
 builder.Services.AddScoped<ApiarioService>();
 builder.Services.AddScoped<ColmenaService>();
+builder.Services.AddScoped<TipoSensorService>();
 
 // Add services to the container.
 builder.Services.AddControllers()

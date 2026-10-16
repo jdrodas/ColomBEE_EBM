@@ -38,6 +38,14 @@ public class EstadisticaRepository(MongoDbContext unContexto) : IEstadisticaRepo
             .EstimatedDocumentCountAsync();
 
         unaEstadistica.Colmenas = totalColmenas;
+        
+        var coleccionLecturas = conexion
+            .GetCollection<Lectura>(contextoDB.ConfiguracionColecciones.ColeccionLecturas);
+
+        var totalLecturas = await coleccionLecturas
+            .EstimatedDocumentCountAsync();
+
+        unaEstadistica.Lecturas = totalLecturas;
 
         return unaEstadistica;
     }

@@ -53,7 +53,7 @@ public class ColmenaRepository(MongoDbContext unContexto) : IColmenaRepository
 
             return unaColmena;
         }
-        catch (TimeoutException error)
+        catch (TimeoutException)
         {
             throw new DbOperationException("Se ha cumplido el tiempo de espera para la conexión a la base de datos");
         }
