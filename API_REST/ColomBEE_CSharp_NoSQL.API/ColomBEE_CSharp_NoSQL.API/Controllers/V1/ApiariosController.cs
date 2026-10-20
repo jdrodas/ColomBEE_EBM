@@ -125,7 +125,7 @@ public async Task<IActionResult> GetAssociatedBeehivesAsync(Guid apiarioId)
 
         return StatusCode(StatusCodes.Status500InternalServerError, unProblema);
     }
-}
+} */
 
 [HttpPost]
 [ProducesResponseType(typeof(Apiario), StatusCodes.Status201Created)]
@@ -175,6 +175,8 @@ public async Task<IActionResult> CreateAsync(Apiario unApiario)
         return StatusCode(StatusCodes.Status500InternalServerError, unProblema);
     }
 }
+
+/*
 
 [HttpPut]
 [ProducesResponseType(typeof(Apiario), StatusCodes.Status200OK)]
@@ -235,14 +237,14 @@ public async Task<IActionResult> UpdateAsync(Apiario unApiario)
 
         return StatusCode(StatusCodes.Status500InternalServerError, unProblema);
     }
-}
+} */
 
-[HttpDelete("{apiarioId:Guid}")]
+[HttpDelete("{apiarioId:length(24)}")]
 [ProducesResponseType(typeof(RespuestaApi), StatusCodes.Status200OK)]
 [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
 [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
 [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-public async Task<IActionResult> RemoveAsync(Guid apiarioId)
+public async Task<IActionResult> RemoveAsync(string apiarioId)
 {
     try
     {
@@ -291,5 +293,4 @@ public async Task<IActionResult> RemoveAsync(Guid apiarioId)
         return StatusCode(StatusCodes.Status500InternalServerError, unProblema);
     }
 }
-*/
 }

@@ -7,13 +7,14 @@ public interface IApiarioRepository
     public Task<List<Apiario>> GetAllAsync();
 
     public Task<Apiario> GetByIdAsync(string apiarioId);
-    /*
+    
+    public Task<Apiario> GetByNameAsync(string apiarioNombre);
+    
 
-    public Task<List<Colmena>> GetAssociatedBeehivesAsync(Guid apiarioId);
+    //public Task<List<Colmena>> GetAssociatedBeehivesAsync(Guid apiarioId);
     public Task<Apiario> GetByDetailsAsync(Apiario unApiario);
-    public Task<long> GetTotalAssociatedBeehivesAsync(Guid apiarioId);
+    public Task<long> GetTotalAssociatedBeehivesAsync(string apiarioId);
     public Task<bool> CreateAsync(Apiario unApiario);
-    public Task<bool> UpdateAsync(Apiario unApiario);
-    public Task<bool> RemoveAsync(Guid apiarioId);
-    */
-}
+    //public Task<bool> UpdateAsync(Apiario unApiario);
+    public Task<bool> RemoveAsync(string apiarioId);
+    }

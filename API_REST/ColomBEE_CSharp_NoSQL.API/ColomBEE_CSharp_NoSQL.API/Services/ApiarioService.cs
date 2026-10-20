@@ -51,6 +51,7 @@ public class ApiarioService(IApiarioRepository apiarioRepository)
 
         return unasColmenasAsociadas;
     }
+    */
 
     public async Task<Apiario> CreateAsync(Apiario unApiario)
     {
@@ -62,6 +63,13 @@ public class ApiarioService(IApiarioRepository apiarioRepository)
             throw new AppValidationException(resultadoValidacion);
 
         var apiarioExistente = await _apiarioRepository
+            .GetByNameAsync(unApiario.Nombre!);
+        
+        if(!string.IsNullOrEmpty(apiarioExistente.Id!))
+            throw new ConflictException($"No se puede crear el apiario {unApiario.Nombre} " +
+                                        $"porque ya existe con id {apiarioExistente.Id}");
+        
+        apiarioExistente = await _apiarioRepository
             .GetByDetailsAsync(unApiario);
 
         if (apiarioExistente.Nombre!.ToLower().Equals(unApiario.Nombre!.ToLower()) &&
@@ -81,6 +89,7 @@ public class ApiarioService(IApiarioRepository apiarioRepository)
 
         return apiarioExistente;
     }
+    /*
 
     public async Task<Apiario> UpdateAsync(Apiario unApiario)
     {
@@ -117,32 +126,41 @@ public class ApiarioService(IApiarioRepository apiarioRepository)
 
         return apiarioExistente;
     }
+    */
 
-    public async Task<string> RemoveAsync(Guid apiarioId)
+    public async Task<string> RemoveAsync(string apiarioId)
     {
-        var respuesta = "resultado";
+        try
+        {
+            var respuesta = "resultado";
 
-        var apiarioExistente = await _apiarioRepository
-            .GetByIdAsync(apiarioId);
+            var apiarioExistente = await _apiarioRepository
+                .GetByIdAsync(apiarioId);
 
-        if (apiarioExistente.Id == Guid.Empty)
-            throw new EmptyCollectionException($"No hay un apiario con id {apiarioId}");
+            if (apiarioExistente.Id == string.Empty)
+                throw new EmptyCollectionException($"No hay un apiario con id {apiarioId}");
 
-        var totalColmenasAsociadas = await _apiarioRepository
-            .GetTotalAssociatedBeehivesAsync(apiarioId);
+            var totalColmenasAsociadas = await _apiarioRepository
+                .GetTotalAssociatedBeehivesAsync(apiarioId);
 
-        if (totalColmenasAsociadas > 0)
-            throw new AppValidationException(
-                $"El apiario con id {apiarioId} tiene {totalColmenasAsociadas} colmenas asociadas. No se puede eliminar");
+            if (totalColmenasAsociadas > 0)
+                throw new AppValidationException(
+                    $"El apiario con id {apiarioId} tiene {totalColmenasAsociadas} colmenas asociadas. No se puede eliminar");
 
-        var resultado = await _apiarioRepository
-            .RemoveAsync(apiarioId);
+            var resultado = await _apiarioRepository
+                .RemoveAsync(apiarioId);
 
-        if (resultado)
-            respuesta = $"Eliminado el apiario {apiarioExistente.Nombre}.";
+            if (resultado)
+                respuesta = $"Eliminado el apiario {apiarioExistente.Nombre}.";
 
-        return respuesta;
+            return respuesta;
+        }
+        catch (FormatException errorFormato)
+        {
+            throw new AppValidationException(errorFormato.Message);
+        }
     }
+    
 
     private static string EvaluateApiaryDetailsAsync(Apiario unApiario)
     {
@@ -157,5 +175,4 @@ public class ApiarioService(IApiarioRepository apiarioRepository)
 
         return string.Empty;
     }
-    */
 }
