@@ -31,6 +31,14 @@ public class EstadisticaRepository(MongoDbContext unContexto) : IEstadisticaRepo
 
         unaEstadistica.TiposSensores = totalTiposSensores;
         
+        var coleccionSensores = conexion
+            .GetCollection<Sensor>(contextoDB.ConfiguracionColecciones.ColeccionSensores);
+
+        var totalSensores = await coleccionSensores
+            .EstimatedDocumentCountAsync();
+
+        unaEstadistica.Sensores = totalSensores;
+        
         var coleccionColmenas = conexion
             .GetCollection<Colmena>(contextoDB.ConfiguracionColecciones.ColeccionColmenas);
 

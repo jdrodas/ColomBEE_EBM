@@ -69,6 +69,33 @@ db.sensores.find().forEach(function(unSensor){
     }
 });
 
+-- Actualizar el nombre del tipo de sensor en colección de sensores
+db.sensores.find().forEach(function(unSensor){
+    let unTipoSensor = db.tipos_sensores.findOne({"_id":unSensor.tipo_sensor_objectId});
+
+    if(unTipoSensor){
+        db.sensores.updateOne(
+            {_id:unSensor._id},
+            {$set:{"tipo_sensor_nombre": unTipoSensor.nombre}}
+        );
+    }
+});
+
+-- Actualizar el nombre de la colmena en colección de sensores
+db.sensores.find().forEach(function(unSensor){
+    let unaColmena = db.colmenas.findOne({"_id":unSensor.colmena_objectId});
+
+    if(unaColmena){
+        db.sensores.updateOne(
+            {_id:unSensor._id},
+            {$set:{"colmena_nombre": unaColmena.nombre}}
+        );
+    }
+});
+
+
+
+
 -- Actualizar el ObjectId de la colmena en colección de sensores
 db.sensores.find().forEach(function(unSensor){
     let unaColmena = db.colmenas.findOne({"colmena_id":unSensor.colmena_id});
