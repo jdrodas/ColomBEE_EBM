@@ -89,12 +89,13 @@ public class ApiariosController(ApiarioService apiarioService) : Controller
         }
     }
     
-    /*
-[HttpGet("{apiarioId:Guid}/colmenas")]
+    
+[HttpGet("{apiarioId:length(24)}/colmenas")]
 [ProducesResponseType(typeof(List<Colmena>), StatusCodes.Status200OK)]
+[ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
 [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
 [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-public async Task<IActionResult> GetAssociatedBeehivesAsync(Guid apiarioId)
+public async Task<IActionResult> GetAssociatedBeehivesAsync(string apiarioId)
 {
     try
     {
@@ -102,6 +103,17 @@ public async Task<IActionResult> GetAssociatedBeehivesAsync(Guid apiarioId)
             .GetAssociatedBeehivesAsync(apiarioId);
 
         return Ok(lasColmenasAsociadas);
+    }
+    catch (AppValidationException error)
+    {
+        var unProblema = new ProblemDetails
+        {
+            Status = StatusCodes.Status400BadRequest,
+            Title = "Error de formato en el parametro apiarioId",
+            Detail = error.Message
+        };
+
+        return StatusCode(StatusCodes.Status400BadRequest, unProblema);
     }
     catch (EmptyCollectionException error)
     {
@@ -125,7 +137,7 @@ public async Task<IActionResult> GetAssociatedBeehivesAsync(Guid apiarioId)
 
         return StatusCode(StatusCodes.Status500InternalServerError, unProblema);
     }
-} */
+} 
 
 [HttpPost]
 [ProducesResponseType(typeof(Apiario), StatusCodes.Status201Created)]
@@ -175,8 +187,6 @@ public async Task<IActionResult> CreateAsync(Apiario unApiario)
         return StatusCode(StatusCodes.Status500InternalServerError, unProblema);
     }
 }
-
-/*
 
 [HttpPut]
 [ProducesResponseType(typeof(Apiario), StatusCodes.Status200OK)]
@@ -237,7 +247,8 @@ public async Task<IActionResult> UpdateAsync(Apiario unApiario)
 
         return StatusCode(StatusCodes.Status500InternalServerError, unProblema);
     }
-} */
+}
+
 
 [HttpDelete("{apiarioId:length(24)}")]
 [ProducesResponseType(typeof(RespuestaApi), StatusCodes.Status200OK)]

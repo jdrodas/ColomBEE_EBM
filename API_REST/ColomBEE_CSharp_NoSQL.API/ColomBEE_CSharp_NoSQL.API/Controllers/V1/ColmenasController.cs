@@ -88,8 +88,6 @@ public class ColmenasController(ColmenaService colmenaService) : Controller
         }
     }
     
-    /*
-
     [HttpPost]
     [ProducesResponseType(typeof(Colmena), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -138,7 +136,7 @@ public class ColmenasController(ColmenaService colmenaService) : Controller
             return StatusCode(StatusCodes.Status409Conflict, unProblema);
         }
     }
-
+    /*
     [HttpPut]
     [ProducesResponseType(typeof(Colmena), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -199,13 +197,13 @@ public class ColmenasController(ColmenaService colmenaService) : Controller
             return StatusCode(StatusCodes.Status500InternalServerError, unProblema);
         }
     }
-
-    [HttpDelete("{colmenaId:Guid}")]
+    */
+    [HttpDelete("{colmenaId:length(24)}")]
     [ProducesResponseType(typeof(RespuestaApi), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> RemoveAsync(Guid colmenaId)
+    public async Task<IActionResult> RemoveAsync(string colmenaId)
     {
         try
         {
@@ -254,5 +252,4 @@ public class ColmenasController(ColmenaService colmenaService) : Controller
             return StatusCode(StatusCodes.Status500InternalServerError, unProblema);
         }
     }
-    */
 }

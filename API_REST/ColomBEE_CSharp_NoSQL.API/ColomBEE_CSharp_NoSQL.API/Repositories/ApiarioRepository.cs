@@ -51,7 +51,7 @@ public class ApiarioRepository(MongoDbContext unContexto) :  IApiarioRepository
         return unApiario;
     }
     
-    public async Task<long> GetTotalAssociatedBeehivesAsync(string apiarioId)
+    public async Task<List<Colmena>> GetAssociatedBeehivesAsync(string apiarioId)
     {
         if (!ObjectId.TryParse(apiarioId, out var apiario_objectId))
             throw new FormatException($"El valor '{apiarioId}' no tiene un formato válido de ObjectId.");
@@ -62,13 +62,19 @@ public class ApiarioRepository(MongoDbContext unContexto) :  IApiarioRepository
         var coleccionColmenas = conexion
             .GetCollection<Colmena>(_contextoDb.ConfiguracionColecciones.ColeccionColmenas);
 
-        var resultado = await coleccionColmenas
-            .Find(colemna => colemna.ApiarioId == apiarioId)
-            .FirstOrDefaultAsync();
-        
         var lasColmenas = await coleccionColmenas
             .Find(colmena => colmena.ApiarioId == apiarioId)
             .ToListAsync();
+
+        return lasColmenas;
+    }
+    
+    public async Task<long> GetTotalAssociatedBeehivesAsync(string apiarioId)
+    {
+        if (!ObjectId.TryParse(apiarioId, out var apiario_objectId))
+            throw new FormatException($"El valor '{apiarioId}' no tiene un formato válido de ObjectId.");
+
+        var lasColmenas = await GetAssociatedBeehivesAsync(apiarioId);
 
         if (lasColmenas.Any())
             return lasColmenas.Count;
@@ -148,6 +154,57 @@ public class ApiarioRepository(MongoDbContext unContexto) :  IApiarioRepository
         return resultadoAccion;
     }
     
+    public async Task<bool> UpdateAsync(Apiario unApiario)
+    {
+        bool resultadoAccion = false;
+
+        var conexion = _contextoDb
+            .CreateConnection();
+
+        var coleccionApiarios = conexion
+            .GetCollection<Apiario>(_contextoDb.ConfiguracionColecciones.ColeccionApiarios);
+
+        var resultado = await coleccionApiarios
+            .ReplaceOneAsync(apiario => apiario.Id == unApiario.Id, unApiario);
+
+        if (resultado.IsAcknowledged)
+            resultadoAccion = true;
+
+        return resultadoAccion;
+    }
+
+    public async Task<bool> UpdateAssociatedBeehivesAsync(string apiarioId)
+    {
+        if (!ObjectId.TryParse(apiarioId, out var apiario_objectId))
+            throw new FormatException($"El valor '{apiarioId}' no tiene un formato válido de ObjectId.");
+        
+        bool resultadoAccion = false;
+
+        var conexion = _contextoDb
+            .CreateConnection();        
+
+        Apiario unApiario = await GetByIdAsync(apiarioId);
+        
+        var filtroApiarios = Builders<Colmena>
+            .Filter
+            .Eq(colmena => colmena.ApiarioId, apiarioId);
+        
+        var actualizadorColmenas = Builders<Colmena>
+            .Update
+            .Set(colmena => colmena.ApiarioNombre, unApiario.Nombre);
+        
+        var coleccionColmenas = conexion
+            .GetCollection<Colmena>(_contextoDb.ConfiguracionColecciones.ColeccionColmenas);        
+        
+        var resultado = await coleccionColmenas
+            .UpdateManyAsync(filtroApiarios, actualizadorColmenas);
+        
+        if (resultado.IsAcknowledged)
+            resultadoAccion = true;
+
+        return resultadoAccion;
+    }
+
     public async Task<bool> RemoveAsync(string apiarioId)
     {
         if (!ObjectId.TryParse(apiarioId, out var apiario_objectId))

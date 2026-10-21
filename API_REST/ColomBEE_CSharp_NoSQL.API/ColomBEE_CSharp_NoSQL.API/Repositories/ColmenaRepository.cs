@@ -58,4 +58,111 @@ public class ColmenaRepository(MongoDbContext unContexto) : IColmenaRepository
             throw new DbOperationException("Se ha cumplido el tiempo de espera para la conexión a la base de datos");
         }
     }
+    public async Task<Colmena> GetByDetailsAsync(Colmena unaColmena)
+    {
+        try
+        {
+            Colmena colmenaExistente = new();
+
+            var conexion = _contextoDb
+                .CreateConnection();
+
+            var coleccionColmenas = conexion
+                .GetCollection<Colmena>(_contextoDb.ConfiguracionColecciones.ColeccionColmenas);
+            
+            var builder = Builders<Colmena>.Filter;
+            var filtro = builder.And(
+                builder.Regex(colmena => colmena.Nombre, $"/^{unaColmena.Nombre}$/i"),
+                builder.Regex(colmena => colmena.FechaInstalacion, $"/^{unaColmena.FechaInstalacion}$/i"),
+                builder.Eq(colmena => colmena.ApiarioId, unaColmena.ApiarioId)
+            );
+
+            var resultado = await coleccionColmenas
+                .Find(filtro)
+                .FirstOrDefaultAsync();
+
+            if (resultado is not null)
+                colmenaExistente = resultado;
+
+            return colmenaExistente;
+        }
+        catch (TimeoutException)
+        {
+            throw new DbOperationException("Se ha cumplido el tiempo de espera para la conexión a la base de datos");
+        }
+    }
+    
+    public async Task<List<Sensor>> GetAssociatedBeehivesAsync(string colmenaÏd)
+    {
+        if (!ObjectId.TryParse(colmenaÏd, out var colmena_objectId))
+            throw new FormatException($"El valor '{colmenaÏd}' no tiene un formato válido de ObjectId.");
+        
+        var conexion = _contextoDb
+            .CreateConnection();
+
+        var coleccionSensores = conexion
+            .GetCollection<Sensor>(_contextoDb.ConfiguracionColecciones.ColeccionSensores);
+
+        var losSensores = await coleccionSensores
+            .Find(sensor => sensor.ColmenaId == colmenaÏd)
+            .ToListAsync();
+
+        return losSensores;
+    }
+    
+    public async Task<long> GetTotalAssociatedSensorsAsync(string colmenaÏd)
+    {
+        if (!ObjectId.TryParse(colmenaÏd, out var colmena_objectId))
+            throw new FormatException($"El valor '{colmenaÏd}' no tiene un formato válido de ObjectId.");
+
+        var losSensores = await GetAssociatedBeehivesAsync(colmenaÏd);
+
+        if (losSensores.Any())
+            return losSensores.Count;
+        else
+            return 0;
+    }
+
+    
+    public async Task<bool> CreateAsync(Colmena unaColmena)
+    {
+        bool resultadoAccion = false;
+
+        var conexion = _contextoDb
+            .CreateConnection();
+
+        var coleccionColmenas = conexion
+            .GetCollection<Colmena>(_contextoDb.ConfiguracionColecciones.ColeccionColmenas);
+
+        await coleccionColmenas
+            .InsertOneAsync(unaColmena);
+
+        var resultado = await GetByDetailsAsync(unaColmena);
+
+        if (resultado is not null)
+            resultadoAccion = true;
+
+        return resultadoAccion;
+    }
+    public async Task<bool> RemoveAsync(string colmenaId)
+    {
+        if (!ObjectId.TryParse(colmenaId, out var colmena_objectId))
+            throw new FormatException($"El valor '{colmenaId}' no tiene un formato válido de ObjectId.");
+        
+        bool resultadoAccion = false;
+
+        var conexion = _contextoDb
+            .CreateConnection();
+
+        var coleccionColmenas = conexion
+            .GetCollection<Colmena>(_contextoDb.ConfiguracionColecciones.ColeccionColmenas);
+
+        var resultado = await coleccionColmenas
+            .DeleteOneAsync(colmena => colmena.Id == colmenaId);
+
+        if (resultado.IsAcknowledged)
+            resultadoAccion = true;
+
+        return resultadoAccion;
+    }
 }
