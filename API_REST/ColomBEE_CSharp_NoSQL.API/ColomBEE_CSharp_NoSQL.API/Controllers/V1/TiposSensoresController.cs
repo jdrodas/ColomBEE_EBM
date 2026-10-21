@@ -127,6 +127,7 @@ public class TiposSensoresController(TipoSensorService tipoSensorService) : Cont
             return StatusCode(StatusCodes.Status500InternalServerError, unProblema);
         }
     }
+    */
 
     [HttpPost]
     [ProducesResponseType(typeof(TipoSensor), StatusCodes.Status201Created)]
@@ -238,12 +239,12 @@ public class TiposSensoresController(TipoSensorService tipoSensorService) : Cont
         }
     }
 
-    [HttpDelete("{tipoSensorId:Guid}")]
+    [HttpDelete("{tipoSensorId:length(24)}")]
     [ProducesResponseType(typeof(RespuestaApi), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> RemoveAsync(Guid tipoSensorId)
+    public async Task<IActionResult> RemoveAsync(string tipoSensorId)
     {
         try
         {
@@ -292,6 +293,4 @@ public class TiposSensoresController(TipoSensorService tipoSensorService) : Cont
             return StatusCode(StatusCodes.Status500InternalServerError, unProblema);
         }
     }
-
-    */
 }

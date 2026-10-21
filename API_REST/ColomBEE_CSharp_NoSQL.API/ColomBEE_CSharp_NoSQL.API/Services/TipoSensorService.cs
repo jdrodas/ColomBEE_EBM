@@ -55,6 +55,8 @@ public class TipoSensorService(ITipoSensorRepository tipoSensorRepository)
 
         return unosSensoresAsociados;
     }
+    
+    */
 
     public async Task<TipoSensor> CreateAsync(TipoSensor unTipoSensor)
     {
@@ -97,9 +99,9 @@ public class TipoSensorService(ITipoSensorRepository tipoSensorRepository)
             throw new AppValidationException(resultadoValidacion);
 
         var tipoSensorExistente = await _tipoSensorRepository
-            .GetByIdAsync(unTipoSensor.Id);
+            .GetByIdAsync(unTipoSensor.Id!);
 
-        if(tipoSensorExistente.Id == Guid.Empty)
+        if(tipoSensorExistente.Id == string.Empty)
             throw new EmptyCollectionException($"No existe un tipo de sensor con Id: {unTipoSensor.Id} " +
                                                $"que se pueda actualizar");
 
@@ -122,35 +124,42 @@ public class TipoSensorService(ITipoSensorRepository tipoSensorRepository)
 
         return tipoSensorExistente;
     }
-
-    public async Task<string> RemoveAsync(Guid tipoSensorId)
+    
+    public async Task<string> RemoveAsync(string tipoSensorId)
     {
-        var respuesta = "resultado";
+        try
+        {
+            var respuesta = "resultado";
 
-        var tipoSensorExistente = await _tipoSensorRepository
-            .GetByIdAsync(tipoSensorId);
+            var tipoSensorExistente = await _tipoSensorRepository
+                .GetByIdAsync(tipoSensorId);
 
-        if (tipoSensorExistente.Id == Guid.Empty)
-            throw new EmptyCollectionException($"No hay un tipo de sensor con id {tipoSensorId}");
+            if (tipoSensorExistente.Id == string.Empty)
+                throw new EmptyCollectionException($"No hay un tipo de sensor con id {tipoSensorId}");
 
-        var totalSensoresAsociados = await _tipoSensorRepository
-            .GetTotalAssociatedSensorsAsync(tipoSensorId);
+            var totalSensoresAsociados = await _tipoSensorRepository
+                .GetTotalAssociatedSensorsAsync(tipoSensorId);
 
-        if (totalSensoresAsociados > 0)
-            throw new AppValidationException(
-                $"El tipo de sensor con id {tipoSensorId} tiene {totalSensoresAsociados} sensores asociados. No se puede eliminar");
+            if (totalSensoresAsociados > 0)
+                throw new AppValidationException(
+                    $"El tipo de sensor con id {tipoSensorId} tiene {totalSensoresAsociados} sensores asociados. No se puede eliminar");
 
 
-        var resultado = await _tipoSensorRepository
-            .RemoveAsync(tipoSensorId);
+            var resultado = await _tipoSensorRepository
+                .RemoveAsync(tipoSensorId);
 
-        if (resultado)
-            respuesta =
-                $"Eliminado el tipo de sensor {tipoSensorExistente.Nombre} con unidad de medida {tipoSensorExistente.UnidadMedida}";
+            if (resultado)
+                respuesta =
+                    $"Eliminado el tipo de sensor {tipoSensorExistente.Nombre} con unidad de medida {tipoSensorExistente.UnidadMedida}";
 
-        return respuesta;
+            return respuesta;
+        }
+        catch (FormatException errorFormato)
+        {
+            throw new AppValidationException(errorFormato.Message);
+        }
     }
-
+    
     private static string EvaluateSensorTypeDetailsAsync(TipoSensor unTipoSensor)
     {
         if (string.IsNullOrEmpty(unTipoSensor.Nombre))
@@ -161,5 +170,4 @@ public class TipoSensorService(ITipoSensorRepository tipoSensorRepository)
 
         return string.Empty;
     }
-    */
 }
